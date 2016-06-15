@@ -48,8 +48,9 @@ namespace ClansV2
         #region Hooks
         private void OnInitialize(EventArgs args)
         {
-            Database.ConnectDB();
-            //Commands.ChatCommands.Add(new Command("clans.use", MainCommand, "clan"));
+            ClanManager.ConnectDB();
+            Commands.ChatCommands.Add(new Command("clans.use", ClanCommands.ClanChatCommand, "c", "csay"));
+            Commands.ChatCommands.Add(new Command("clans.use", ClanCommands.MainCommand, "clan"));
         }
 
         private void OnLeave(LeaveEventArgs args)
@@ -60,9 +61,9 @@ namespace ClansV2
 
         private void OnPostLogin(PlayerPostLoginEventArgs args)
         {
-            if (Database.LoadMemberFromResult(new ClanMember(), args.Player.User.ID) != null)
+            if (MemberManager.GetMemberByID(args.Player.User.ID) != null)
             {
-                players.Add(args.Player.User.ID, Database.LoadMemberFromResult(new ClanMember(), args.Player.User.ID));
+                players.Add(args.Player.User.ID, MemberManager.GetMemberByID(args.Player.User.ID));
             }
         }
         #endregion
