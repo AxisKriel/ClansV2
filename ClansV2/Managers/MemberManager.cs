@@ -9,6 +9,7 @@ using TShockAPI.DB;
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
+using static ClansV2.Clans;
 
 namespace ClansV2.Managers
 {
@@ -47,6 +48,20 @@ namespace ClansV2.Managers
                 new SqlColumn("Rank", MySqlDbType.VarChar)));
         }
 
+        internal static void AddMember(ClanMember member)
+        {
+            players.Add(member.UserID, member);
+            db.Query("INSERT INTO ClanMembers (UserID, Clan, Rank) VALUES (@0, @1, @2);", member.UserID.ToString(), member.Clan.Name, JsonConvert.SerializeObject(member.Rank, Formatting.Indented));
+        }
+
+        internal static void RemoveMember(ClanMember member)
+        {
+            if (players.ContainsKey(member.UserID))
+                players.Remove(member.UserID);
+
+            db.Query("DELETE FROM ClanMembers WHERE UserID=@0;", member.UserID.ToString());
+        }
+
         internal static ClanMember LoadMemberFromResult(ClanMember member, QueryResult reader)
         {
             member.UserID = reader.Get<int>("UserID");
@@ -57,7 +72,7 @@ namespace ClansV2.Managers
 
         internal static ClanMember GetMemberByID(int ID)
         {
-            using (QueryResult reader = db.QueryReader("SELECT * FROM ClanMembers WHERE ID=@0;", ID.ToString()))
+            using (QueryResult reader = db.QueryReader("SELECT * FROM ClanMembers WHERE UserID=@0;", ID.ToString()))
             {
                 if (reader.Read())
                 {
@@ -66,6 +81,20 @@ namespace ClansV2.Managers
             }
 
             return null;
+        }
+
+        internal static List<ClanMember> GetMembersByClan(string clanName)
+        {
+            List<ClanMember> members = new List<ClanMember>();
+            using (QueryResult reader = db.QueryReader("SELECT * FROM ClanMembers WHERE Clan=@0;", clanName))
+            {
+                while (reader.Read())
+                {
+                    members.Add(LoadMemberFromResult(new ClanMember(), reader));
+                }
+            }
+
+            return members;
         }
     }
 }

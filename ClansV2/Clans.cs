@@ -55,12 +55,18 @@ namespace ClansV2
 
         private void OnLeave(LeaveEventArgs args)
         {
-            if (players.ContainsKey(args.Who))
-                players.Remove(args.Who);
+            if (TShock.Players[args.Who] == null || TShock.Players[args.Who].User == null)
+                return;
+
+            if (players.ContainsKey(TShock.Players[args.Who].User.ID))
+                players.Remove(TShock.Players[args.Who].User.ID);
         }
 
         private void OnPostLogin(PlayerPostLoginEventArgs args)
         {
+            if (players.ContainsKey(args.Player.User.ID))
+                players.Remove(args.Player.User.ID);
+
             if (MemberManager.GetMemberByID(args.Player.User.ID) != null)
             {
                 players.Add(args.Player.User.ID, MemberManager.GetMemberByID(args.Player.User.ID));

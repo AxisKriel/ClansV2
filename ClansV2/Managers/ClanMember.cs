@@ -9,12 +9,14 @@ namespace ClansV2.Managers
     public class ClanMember
     {
         public int UserID { get; set; }
-        public Tuple<int, string> Rank { get; set; }
         public Clan Clan { get; set; }
+        public Tuple<int, string> Rank { get; set; }
 
         public ClanMember()
         {
-
+            UserID = 0;
+            Clan = null;
+            Rank = null;
         }
     }
 }

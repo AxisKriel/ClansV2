@@ -15,7 +15,10 @@ namespace ClansV2.Managers
 
         public Clan()
         {
-
+            Name = "";
+            Prefix = "";
+            MotD = "";
+            ChatColor = "";
         }
     }
 }

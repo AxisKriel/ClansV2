@@ -60,6 +60,7 @@
     <Compile Include="Managers\Clan.cs" />
     <Compile Include="Managers\ClanMember.cs" />
     <Compile Include="Managers\ClanManager.cs" />
+    <Compile Include="Managers\ClanRank.cs" />
     <Compile Include="Managers\MemberManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
