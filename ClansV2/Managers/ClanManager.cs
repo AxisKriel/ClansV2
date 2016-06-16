@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Data;
+using System.Threading.Tasks;
 using TShockAPI;
 using TShockAPI.DB;
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
+using ClansV2.Hooks;
+using ClansV2.Extensions;
 using static ClansV2.Clans;
 
 namespace ClansV2.Managers
@@ -49,56 +52,141 @@ namespace ClansV2.Managers
                 new SqlColumn("ChatColor", MySqlDbType.VarChar)));
         }
 
-        internal static void AddClan(Clan clan, int FounderID)
+        internal static bool AddClan(Clan clan, int FounderID)
         {
-            db.Query("INSERT INTO Clans (Name, Prefix, MotD, ChatColor) VALUES (@0, @1, @2, @3);", clan.Name, clan.Prefix, clan.MotD, clan.ChatColor);
-            MemberManager.AddMember(new ClanMember() { UserID = FounderID, Clan = clan, Rank = new Tuple<int, string>((int)ClanRank.Founder, ClanRank.Founder.ToString()) });
-        }
-
-        internal static void RemoveClan(Clan clan)
-        {
-            db.Query("DELETE FROM Clans WHERE Name=@0;", clan.Name);
-        }
-
-        internal static void SetClanPrefix(Clan clan, string prefix)
-        {
-            clan.Prefix = prefix;
-            db.Query("UPDATE Clans SET Prefix=@0 WHERE Name=@1;", prefix, clan.Name);
-
-            foreach (int key in players.Keys.ToList())
+            if (GetClanByName(clan.Name) != null)
             {
-                if (players[key].Clan == clan)
-                {
-                    players[key] = MemberManager.GetMemberByID(key);
-                }
+                return false;
+            }
+
+            try
+            {
+                ClanHooks.OnClanCreated(clan);
+                db.Query("INSERT INTO Clans (Name, Prefix, MotD, ChatColor) VALUES (@0, @1, @2, @3);", clan.Name, clan.Prefix, clan.MotD, clan.ChatColor);
+                MemberManager.AddMember(new ClanMember() { UserID = FounderID, Clan = clan, Rank = new Tuple<int, string>((int)ClanRank.Founder, ClanRank.Founder.ToString()) });
+                return true;
+            }
+            catch (Exception ex)
+            {
+                TShock.Log.Error(ex.ToString());
+                return false;
             }
         }
 
-        internal static void SetClanMotd(Clan clan, string motd)
+        internal static bool RemoveClan(Clan clan)
         {
-            clan.MotD = motd;
-            db.Query("UPDATE Clans SET MotD=@0 WHERE Name=@1;", motd, clan.Name);
-
-            foreach (int key in players.Keys.ToList())
+            try
             {
-                if (players[key].Clan == clan)
+                ClanHooks.OnClanDisbanded(clan);
+                db.Query("DELETE FROM Clans WHERE Name=@0;", clan.Name);
+                foreach (ClanMember member in MemberManager.GetMembersByClan(clan.Name))
                 {
-                    players[key] = MemberManager.GetMemberByID(key);
+                    MemberManager.RemoveMember(member);
+                    if (players.ContainsKey(member.UserID))
+                    {
+                        players.Remove(member.UserID);
+                    }
                 }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                TShock.Log.Error(ex.ToString());
+                return false;
             }
         }
 
-        internal static void SetClanColor(Clan clan, string color)
+        internal static bool SetClanPrefix(Clan clan, string prefix)
         {
-            clan.ChatColor = color;
-            db.Query("UPDATE Clans SET ChatColor=@0 WHERE Name=@1;", color, clan.Name);
-
-            foreach (int key in players.Keys.ToList())
+            try
             {
-                if (players[key].Clan == clan)
+                clan.Prefix = prefix;
+                db.Query("UPDATE Clans SET Prefix=@0 WHERE Name=@1;", prefix, clan.Name);
+
+                foreach (int key in players.Keys.ToList())
                 {
-                    players[key] = MemberManager.GetMemberByID(key);
+                    if (players[key].Clan == clan)
+                    {
+                        players[key] = MemberManager.GetMemberByID(key);
+                    }
                 }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                TShock.Log.Error(ex.ToString());
+                return false;
+            }
+        }
+
+        internal static bool SetClanMotd(Clan clan, string motd)
+        {
+            try
+            {
+                clan.MotD = motd;
+                db.Query("UPDATE Clans SET MotD=@0 WHERE Name=@1;", motd, clan.Name);
+
+                foreach (int key in players.Keys.ToList())
+                {
+                    if (players[key].Clan == clan)
+                    {
+                        players[key] = MemberManager.GetMemberByID(key);
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                TShock.Log.Error(ex.ToString());
+                return false;
+            }
+        }
+
+        internal static bool SetClanColor(Clan clan, string color)
+        {
+            try
+            {
+                clan.ChatColor = color;
+                db.Query("UPDATE Clans SET ChatColor=@0 WHERE Name=@1;", color, clan.Name);
+
+                foreach (int key in players.Keys.ToList())
+                {
+                    if (players[key].Clan == clan)
+                    {
+                        players[key] = MemberManager.GetMemberByID(key);
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                TShock.Log.Error(ex.ToString());
+                return false;
+            }
+        }
+
+        internal static bool SendClanMessage(Clan clan, string message, params object[] args)
+        {
+            try
+            {
+                foreach (TSPlayer tsplr in TShock.Players.Where(tsplr => tsplr != null && tsplr.IsLoggedIn))
+                {
+                    if (players.ContainsKey(tsplr.User.ID) && players[tsplr.User.ID].Clan == clan)
+                    {
+                        tsplr.SendMessage(string.Format(message, args), clan.ChatColor.ParseColor());
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                TShock.Log.Error(ex.ToString());
+                return false;
             }
         }
 
