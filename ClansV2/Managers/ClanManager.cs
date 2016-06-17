@@ -82,10 +82,11 @@ namespace ClansV2.Managers
                 foreach (ClanMember member in MemberManager.GetMembersByClan(clan.Name))
                 {
                     MemberManager.RemoveMember(member);
-                    if (players.ContainsKey(member.UserID))
-                    {
-                        players.Remove(member.UserID);
-                    }
+                    // Nice double check 
+                    //if (players.ContainsKey(member.UserID))
+                    //{
+                    //    players.Remove(member.UserID);
+                    //}
                 }
 
                 return true;
@@ -157,27 +158,6 @@ namespace ClansV2.Managers
                     if (players[key].Clan == clan)
                     {
                         players[key] = MemberManager.GetMemberByID(key);
-                    }
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.ToString());
-                return false;
-            }
-        }
-
-        internal static bool SendClanMessage(Clan clan, string message, params object[] args)
-        {
-            try
-            {
-                foreach (TSPlayer tsplr in TShock.Players.Where(tsplr => tsplr != null && tsplr.IsLoggedIn))
-                {
-                    if (players.ContainsKey(tsplr.User.ID) && players[tsplr.User.ID].Clan == clan)
-                    {
-                        tsplr.SendMessage(string.Format(message, args), clan.ChatColor.ParseColor());
                     }
                 }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using TShockAPI;
 using ClansV2.Managers;
+using ClansV2.Extensions;
 using static ClansV2.Clans;
 
 namespace ClansV2
@@ -35,7 +36,7 @@ namespace ClansV2
             else
             {
                 string message = string.Join(" ", args.Parameters.Select(p => p));
-                ClanManager.SendClanMessage(players[args.Player.User.ID].Clan, "(Clan) [{0}] {1}: {2}", players[args.Player.User.ID].Rank.Item2.ToString(), args.Player.Name, message);
+                players[args.Player.User.ID].Clan.SendClanMessage("(Clan) [{0}] {1}: {2}", players[args.Player.User.ID].Rank.Item2.ToString(), args.Player.Name, message);
             }
         }
 
@@ -60,6 +61,27 @@ namespace ClansV2
                     #region Create New Clan
                     {
                         CreateClan(args);
+                    }
+                    #endregion
+                    break;
+                case "disband":
+                    #region Disband Clan
+                    {
+                        DisbandClan(args);
+                    }
+                    #endregion
+                    break;
+                case "motd":
+                    #region Print/Display MotD
+                    {
+                        SetMotd(args);
+                    }
+                    #endregion
+                    break;
+                case "prefix":
+                    #region Set Clan Prefix
+                    {
+                        SetPrefix(args);
                     }
                     #endregion
                     break;
@@ -155,7 +177,108 @@ namespace ClansV2
             }
             else
             {
-                ClanManager.RemoveClan(players[args.Player.User.ID].Clan);
+                if (ClanManager.RemoveClan(players[args.Player.User.ID].Clan))
+                {
+                    args.Player.SendSuccessMessage("Clan disbanded successfully.");
+                }
+                else
+                {
+                    args.Player.SendErrorMessage("Something went wrong... Check logs for more details.");
+                }
+            }
+        }
+
+        private static void SetMotd(CommandArgs args)
+        {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+
+            if (!players.ContainsKey(args.Player.User.ID))
+            {
+                args.Player.SendErrorMessage("You are not in a clan!");
+                return;
+            }
+            else
+            {
+                if (args.Parameters.Count >= 2)
+                {
+                    args.Parameters.RemoveAt(0);
+                    string motd = string.Join(" ", args.Parameters.Select(p => p));
+                    if (players[args.Player.User.ID].Rank.Item1 != (int)ClanRank.Founder)
+                    {
+                        args.Player.SendErrorMessage("Only clan founders can set the clan's MotD!");
+                        return;
+                    }
+                    else
+                    {
+                        if (ClanManager.SetClanMotd(players[args.Player.User.ID].Clan, motd))
+                        {
+                            args.Player.SendSuccessMessage("Clan MotD set successfully!");
+                        }
+                        else
+                        {
+                            args.Player.SendErrorMessage("Something went wrong... Check logs for more details.");
+                        }
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrWhiteSpace(players[args.Player.User.ID].Clan.MotD))
+                    {
+                        args.Player.SendMessage(players[args.Player.User.ID].Clan.MotD, players[args.Player.User.ID].Clan.ChatColor.ParseColor());
+                    }
+                    else
+                    {
+                        args.Player.SendErrorMessage("Your clan does not have a MotD set.");
+                    }
+                }
+            }
+        }
+
+        private static void SetPrefix(CommandArgs args)
+        {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+
+            if (args.Parameters.Count < 2)
+            {
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}clan prefix <new prefix>", TShock.Config.CommandSpecifier);
+                return;
+            }
+
+            args.Parameters.RemoveAt(0);
+            string prefix = string.Join(" ", args.Parameters.Select(p => p));
+            if (!players.ContainsKey(args.Player.User.ID))
+            {
+                args.Player.SendErrorMessage("You are not in a clan!");
+                return;
+            }
+            else if (players[args.Player.User.ID].Rank.Item1 != (int)ClanRank.Founder)
+            {
+                args.Player.SendErrorMessage("Only clan founders can change the clan's prefix.");
+                return;
+            }
+            else if (prefix.Length > Config.PrefixLength)
+            {
+                args.Player.SendErrorMessage("Your clan's prefix cannot be longer than {0} characters.", Config.PrefixLength);
+                return;
+            }
+            else
+            {
+                if (ClanManager.SetClanPrefix(players[args.Player.User.ID].Clan, prefix))
+                {
+                    args.Player.SendSuccessMessage("Clan prefix set successfully.");
+                }
+                else
+                {
+                    args.Player.SendErrorMessage("Something went wrong... Check logs for more details.");
+                }
             }
         }
     }

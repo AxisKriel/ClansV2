@@ -26,7 +26,7 @@ namespace ClansV2
 
         public Clans(Main game) : base(game)
         {
-            base.Order = -1;
+
         }
 
         #region Initialize/Dispose
@@ -36,6 +36,7 @@ namespace ClansV2
             ServerApi.Hooks.ServerChat.Register(this, OnChat);
             ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
             PlayerHooks.PlayerPostLogin += OnPostLogin;
+            GeneralHooks.ReloadEvent += OnReload;
 
             ClanHooks.ClanCreated += OnClanCreated;
             ClanHooks.ClanDisbanded += OnClanDisbanded;
@@ -49,6 +50,7 @@ namespace ClansV2
                 ServerApi.Hooks.ServerChat.Deregister(this, OnChat);
                 ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
                 PlayerHooks.PlayerPostLogin -= OnPostLogin;
+                GeneralHooks.ReloadEvent -= OnReload;
 
                 ClanHooks.ClanCreated -= OnClanCreated;
                 ClanHooks.ClanDisbanded -= OnClanDisbanded;
@@ -105,6 +107,11 @@ namespace ClansV2
             {
                 players.Add(args.Player.User.ID, MemberManager.GetMemberByID(args.Player.User.ID));
             }
+        }
+
+        private void OnReload(ReloadEventArgs args)
+        {
+            LoadConfig();
         }
         #endregion
 
