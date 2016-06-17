@@ -1,0 +1,6 @@
+.vs/
+obj
+*.pdb
+*.exe
+*.dll
+!ClansV2.dll
