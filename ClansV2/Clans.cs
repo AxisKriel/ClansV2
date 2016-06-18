@@ -22,6 +22,7 @@ namespace ClansV2
         public override Version Version { get { return new Version(1, 0, 0, 0); } }
 
         internal static ConfigFile Config;
+        internal static Dictionary<int, string> invites = new Dictionary<int, string>();
         internal static Dictionary<int, ClanMember> players = new Dictionary<int, ClanMember>();
 
         public Clans(Main game) : base(game)
@@ -67,8 +68,10 @@ namespace ClansV2
         private void OnInitialize(EventArgs args)
         {
             LoadConfig();
+            InviteManager.ConnectDB();
             ClanManager.ConnectDB();
             MemberManager.ConnectDB();
+
             Commands.ChatCommands.Add(new Command("clans.use", ClanCommands.ClanChatCommand, "c", "csay"));
             Commands.ChatCommands.Add(new Command("clans.use", ClanCommands.MainCommand, "clan"));
         }

@@ -52,6 +52,7 @@ namespace ClansV2
             switch (args.Parameters[0].ToLower())
             {
                 case "help":
+                default:
                     #region Send Help
                     {
                         SendHelp(args);
@@ -93,10 +94,68 @@ namespace ClansV2
                     }
                     #endregion
                     break;
+                case "promote":
+                    #region Promote Member
+                    {
+                        PromoteMember(args);
+                    }
+                    #endregion
+                    break;
+                case "demote":
+                    #region Demote Member
+                    {
+                        DemoteMember(args);
+                    }
+                    #endregion
+                    break;
                 case "kick":
                     #region Kick Member From Clan
                     {
                         KickMember(args);
+                    }
+                    #endregion
+                    break;
+                case "quit":
+                case "leave":
+                    #region Leave Clan
+                    {
+                        LeaveClan(args);
+                    }
+                    #endregion
+                    break;
+                case "invite":
+                    #region Invite Player To Clan
+                    {
+                        InvitePlayer(args);
+                    }
+                    #endregion
+                    break;
+                case "accept":
+                    #region Accept Clan Invite
+                    {
+                        AcceptInvite(args);
+                    }
+                    #endregion
+                    break;
+                case "deny":
+                case "decline":
+                    #region Decline Clan Invite
+                    {
+                        DeclineInvite(args);
+                    }
+                    #endregion
+                    break;
+                case "members":
+                    #region List Clan Members
+                    {
+                        ListMembers(args);
+                    }
+                    #endregion
+                    break;
+                case "list":
+                    #region List Clans
+                    {
+                        ListClans(args);
                     }
                     #endregion
                     break;
@@ -342,6 +401,110 @@ namespace ClansV2
             }
         }
 
+        private static void PromoteMember(CommandArgs args)
+        {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+
+            if (args.Parameters.Count != 2)
+            {
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}clan promote <player name>", TShock.Config.CommandSpecifier);
+                return;
+            }
+
+            List<User> userList = TShock.Users.GetUsersByName(args.Parameters[1]);
+            if (!players.ContainsKey(args.Player.User.ID))
+            {
+                args.Player.SendErrorMessage("You are not in a clan!");
+                return;
+            }
+            else if (players[args.Player.User.ID].Rank.Item1 != (int)ClanRank.Founder)
+            {
+                args.Player.SendErrorMessage("Only clan founders can promote members!");
+                return;
+            }
+            else if (userList.Count == 0)
+            {
+                args.Player.SendErrorMessage("No players matched your search string.");
+                return;
+            }
+            else if (userList.Count > 1)
+            {
+                TShock.Utils.SendMultipleMatchError(args.Player, userList.Select(p => p.Name));
+                return;
+            }
+            else if (MemberManager.GetMemberByID(userList[0].ID) == null || MemberManager.GetMemberByID(userList[0].ID).Clan != players[args.Player.User.ID].Clan)
+            {
+                args.Player.SendErrorMessage("This player is not a member of your clan!");
+                return;
+            }
+            else if (MemberManager.GetMemberByID(userList[0].ID).Rank.Item1 == (int)ClanRank.Leader)
+            {
+                args.Player.SendErrorMessage("This player is already a leader.");
+                return;
+            }
+            else
+            {
+                MemberManager.SetRank(MemberManager.GetMemberByID(userList[0].ID), new Tuple<int, string>((int)ClanRank.Leader, ClanRank.Leader.ToString()));
+                args.Player.SendInfoMessage("{0} has been promoted to Leader.", userList[0].Name);
+            }
+        }
+
+        private static void DemoteMember(CommandArgs args)
+        {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+
+            if (args.Parameters.Count != 2)
+            {
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}clan promote <player name>", TShock.Config.CommandSpecifier);
+                return;
+            }
+
+            List<User> userList = TShock.Users.GetUsersByName(args.Parameters[1]);
+            if (!players.ContainsKey(args.Player.User.ID))
+            {
+                args.Player.SendErrorMessage("You are not in a clan!");
+                return;
+            }
+            else if (players[args.Player.User.ID].Rank.Item1 != (int)ClanRank.Founder)
+            {
+                args.Player.SendErrorMessage("Only clan founders can demote members!");
+                return;
+            }
+            else if (userList.Count == 0)
+            {
+                args.Player.SendErrorMessage("No players matched your search string.");
+                return;
+            }
+            else if (userList.Count > 1)
+            {
+                TShock.Utils.SendMultipleMatchError(args.Player, userList.Select(p => p.Name));
+                return;
+            }
+            else if (MemberManager.GetMemberByID(userList[0].ID) == null || MemberManager.GetMemberByID(userList[0].ID).Clan != players[args.Player.User.ID].Clan)
+            {
+                args.Player.SendErrorMessage("This player is not a member of your clan!");
+                return;
+            }
+            else if (MemberManager.GetMemberByID(userList[0].ID).Rank.Item1 != (int)ClanRank.Leader)
+            {
+                args.Player.SendErrorMessage("This player is not a leader.");
+                return;
+            }
+            else
+            {
+                MemberManager.SetRank(MemberManager.GetMemberByID(userList[0].ID), new Tuple<int, string>((int)ClanRank.Member, ClanRank.Member.ToString()));
+                args.Player.SendInfoMessage("{0} has been demted to Member.", userList[0].Name);
+            }
+        }
+
         private static void KickMember(CommandArgs args)
         {
             if (!args.Player.IsLoggedIn)
@@ -377,17 +540,17 @@ namespace ClansV2
                 TShock.Utils.SendMultipleMatchError(args.Player, userList.Select(p => p.Name));
                 return;
             }
-            else if (!players.ContainsKey(userList[0].ID) || players[userList[0].ID].Clan != players[args.Player.User.ID].Clan)
+            else if (MemberManager.GetMemberByID(userList[0].ID) == null || MemberManager.GetMemberByID(userList[0].ID).Clan != players[args.Player.User.ID].Clan)
             {
                 args.Player.SendErrorMessage("This player is not a part of your clan!");
                 return;
             }
-            else if (players[userList[0].ID].Rank.Item1 == (int)ClanRank.Founder)
+            else if (MemberManager.GetMemberByID(userList[0].ID).Rank.Item1 == (int)ClanRank.Founder)
             {
                 args.Player.SendErrorMessage("You can't kick the founder!");
                 return;
             }
-            else if (players[userList[0].ID].Rank.Item1 == (int)ClanRank.Leader && players[args.Player.User.ID].Rank.Item1 != (int)ClanRank.Founder)
+            else if (MemberManager.GetMemberByID(userList[0].ID).Rank.Item1 == (int)ClanRank.Leader && players[args.Player.User.ID].Rank.Item1 != (int)ClanRank.Founder)
             {
                 args.Player.SendErrorMessage("You can't kick another leader!");
                 return;
@@ -464,15 +627,106 @@ namespace ClansV2
                 args.Player.SendErrorMessage("The player is not logged in.");
                 return;
             }
-            else if (players.ContainsKey(playerList[0].User.ID))
+            else if (MemberManager.GetMemberByID(playerList[0].User.ID) != null)
             {
                 args.Player.SendErrorMessage("This player is already in a clan!");
                 return;
             }
+            else if (invites.ContainsKey(playerList[0].User.ID))
+            {
+                args.Player.SendErrorMessage("This player alredy has a pending invitation.");
+                return;
+            }
             else
             {
-
+                InviteManager.AddInvite(playerList[0].User.ID, players[args.Player.User.ID].Clan.Name);
+                playerList[0].SendInfoMessage("You have been invited to join clan: {0}", players[args.Player.User.ID].Clan.Name);
+                args.Player.SendSuccessMessage("You have invited {0} to join your clan!", playerList[0].Name);
             }
+        }
+
+        private static void AcceptInvite(CommandArgs args)
+        {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+
+            if (!invites.ContainsKey(args.Player.User.ID))
+            {
+                args.Player.SendErrorMessage("You don't have a pending invitation!");
+                return;
+            }
+            else
+            {
+                MemberManager.AddMember(new ClanMember() { UserID = args.Player.User.ID, Clan = ClanManager.GetClanByName(invites[args.Player.User.ID]), Rank = new Tuple<int, string>((int)ClanRank.Member, ClanRank.Member.ToString()) });
+                InviteManager.RemoveInvite(args.Player.User.ID);
+                args.Player.SendSuccessMessage("You have successfully joined the clan!");
+            }
+        }
+
+        private static void DeclineInvite(CommandArgs args)
+        {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+            
+            if (!invites.ContainsKey(args.Player.User.ID))
+            {
+                args.Player.SendErrorMessage("You don't have a pending invitation!");
+                return;
+            }
+            else
+            {
+                InviteManager.RemoveInvite(args.Player.User.ID);
+                args.Player.SendSuccessMessage("Clan invite declined successfully.");
+            }
+        }
+
+        private static void ListMembers(CommandArgs args)
+        {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+
+            if (!players.ContainsKey(args.Player.User.ID))
+            {
+                args.Player.SendErrorMessage("You are not in a clan!");
+                return;
+            }
+            else
+            {
+                int pageNum;
+                if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNum))
+                    return;
+
+                var members = from m in MemberManager.GetMembersByClan(players[args.Player.User.ID].Clan.Name) orderby TShock.Users.GetUserByID(m.UserID).Name select TShock.Users.GetUserByID(m.UserID).Name;
+                PaginationTools.SendPage(args.Player, pageNum, PaginationTools.BuildLinesFromTerms(members), new PaginationTools.Settings()
+                {
+                    HeaderFormat = "Clan Members ({0}/{1})",
+                    FooterFormat = "Type {0}clan members {{0}} for more.".SFormat(TShock.Config.CommandSpecifier)
+                });
+            }
+        }
+
+        private static void ListClans(CommandArgs args)
+        {
+            int pageNum;
+            if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNum))
+                return;
+
+            var clanList = from c in ClanManager.GetClans() orderby c.Name select c.Name;
+            PaginationTools.SendPage(args.Player, pageNum, PaginationTools.BuildLinesFromTerms(clanList), new PaginationTools.Settings()
+            {
+                HeaderFormat = "Clan List ({0}/{1})",
+                FooterFormat = "Type {0}clan list {{0}} for more.".SFormat(TShock.Config.CommandSpecifier),
+                NothingToDisplayString = "There are currently no clans to list."
+            });
         }
     }
 }

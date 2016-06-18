@@ -65,6 +65,15 @@ namespace ClansV2.Managers
             db.Query("DELETE FROM ClanMembers WHERE UserID=@0;", member.UserID.ToString());
         }
 
+        internal static void SetRank(ClanMember member, Tuple<int, string> rank)
+        {
+            member.Rank = rank;
+            if (players.ContainsKey(member.UserID)) 
+                players[member.UserID] = GetMemberByID(member.UserID);
+
+            db.Query("UPDATE ClanMembers SET Rank=@0 WHERE UserID=@1;", JsonConvert.SerializeObject(member.Rank, Formatting.Indented), member.UserID.ToString());
+        }
+
         internal static ClanMember LoadMemberFromResult(ClanMember member, QueryResult reader)
         {
             member.UserID = reader.Get<int>("UserID");
