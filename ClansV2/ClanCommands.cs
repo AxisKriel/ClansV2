@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using TShockAPI;
+using TShockAPI.DB;
 using ClansV2.Managers;
 using ClansV2.Extensions;
 using static ClansV2.Clans;
@@ -82,6 +83,20 @@ namespace ClansV2
                     #region Set Clan Prefix
                     {
                         SetPrefix(args);
+                    }
+                    #endregion
+                    break;
+                case "color":
+                    #region Set Clan Color
+                    {
+                        SetColor(args);
+                    }
+                    #endregion
+                    break;
+                case "kick":
+                    #region Kick Member From Clan
+                    {
+                        KickMember(args);
                     }
                     #endregion
                     break;
@@ -324,6 +339,139 @@ namespace ClansV2
                 }
                 else
                     args.Player.SendErrorMessage("Invalid color format!");
+            }
+        }
+
+        private static void KickMember(CommandArgs args)
+        {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+
+            if (args.Parameters.Count != 2)
+            {
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}clan kick <member name>", TShock.Config.CommandSpecifier);
+                return;
+            }
+
+            List<User> userList = TShock.Users.GetUsersByName(args.Parameters[1]);
+            if (!players.ContainsKey(args.Player.User.ID))
+            {
+                args.Player.SendErrorMessage("You are not in a clan!");
+                return;
+            }
+            else if (players[args.Player.User.ID].Rank.Item1 == (int)ClanRank.Member)
+            {
+                args.Player.SendErrorMessage("Only clan leaders and founders can kick members!");
+                return;
+            }
+            else if (userList.Count == 0)
+            {
+                args.Player.SendErrorMessage("No players matched your search string.");
+                return;
+            }
+            else if (userList.Count > 1)
+            {
+                TShock.Utils.SendMultipleMatchError(args.Player, userList.Select(p => p.Name));
+                return;
+            }
+            else if (!players.ContainsKey(userList[0].ID) || players[userList[0].ID].Clan != players[args.Player.User.ID].Clan)
+            {
+                args.Player.SendErrorMessage("This player is not a part of your clan!");
+                return;
+            }
+            else if (players[userList[0].ID].Rank.Item1 == (int)ClanRank.Founder)
+            {
+                args.Player.SendErrorMessage("You can't kick the founder!");
+                return;
+            }
+            else if (players[userList[0].ID].Rank.Item1 == (int)ClanRank.Leader && players[args.Player.User.ID].Rank.Item1 != (int)ClanRank.Founder)
+            {
+                args.Player.SendErrorMessage("You can't kick another leader!");
+                return;
+            }
+            else
+            {
+                MemberManager.RemoveMember(MemberManager.GetMemberByID(userList[0].ID), true);
+            }
+        }
+
+        private static void LeaveClan(CommandArgs args)
+        {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+
+            if (!players.ContainsKey(args.Player.User.ID))
+            {
+                args.Player.SendErrorMessage("You are not in a clan!");
+                return;
+            }
+            else
+            {
+                if (players[args.Player.User.ID].Rank.Item1 == (int)ClanRank.Founder)
+                {
+                    ClanManager.RemoveClan(players[args.Player.User.ID].Clan);
+                }
+                else
+                {
+                    MemberManager.RemoveMember(players[args.Player.User.ID], false);
+                }
+            }
+        }
+
+        private static void InvitePlayer(CommandArgs args)
+        {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+
+            if (args.Parameters.Count != 2)
+            {
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}clan invite <player name>", TShock.Config.CommandSpecifier);
+                return;
+            }
+
+            List<TSPlayer> playerList = TShock.Utils.FindPlayer(args.Parameters[1]);
+            if (!players.ContainsKey(args.Player.User.ID))
+            {
+                args.Player.SendErrorMessage("You are not in a clan!");
+                return;
+            }
+            else if (players[args.Player.User.ID].Rank.Item1 == (int)ClanRank.Member)
+            {
+                args.Player.SendErrorMessage("Only clan leaders and founders can invite members!");
+                return;
+            }
+            else if (playerList.Count == 0)
+            {
+                args.Player.SendErrorMessage("No players matched your search string.");
+                return;
+            }
+            else if (playerList.Count > 1)
+            {
+                TShock.Utils.SendMultipleMatchError(args.Player, playerList.Select(p => p.Name));
+                return;
+            }
+            else if (!playerList[0].IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("The player is not logged in.");
+                return;
+            }
+            else if (players.ContainsKey(playerList[0].User.ID))
+            {
+                args.Player.SendErrorMessage("This player is already in a clan!");
+                return;
+            }
+            else
+            {
+
             }
         }
     }

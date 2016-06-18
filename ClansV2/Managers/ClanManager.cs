@@ -82,11 +82,6 @@ namespace ClansV2.Managers
                 foreach (ClanMember member in MemberManager.GetMembersByClan(clan.Name))
                 {
                     MemberManager.RemoveMember(member);
-                    // Nice double check 
-                    //if (players.ContainsKey(member.UserID))
-                    //{
-                    //    players.Remove(member.UserID);
-                    //}
                 }
 
                 return true;

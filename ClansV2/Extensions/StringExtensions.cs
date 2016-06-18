@@ -16,7 +16,7 @@ namespace ClansV2.Extensions
             if (color.Length == 3 && byte.TryParse(color[0], out r) && byte.TryParse(color[1], out g) && byte.TryParse(color[2], out b))
                 return new Color(r, g, b);
             else
-                throw new Exception("[Clans] Cannot parse from string to Color");
+                throw new Exception("[Clans] Cannot parse Color from string");
         }
     }
 }
