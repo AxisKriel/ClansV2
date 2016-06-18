@@ -220,7 +220,7 @@ namespace ClansV2
             }
             else
             {
-                if (ClanManager.AddClan(new Clan() { Name = clanName, Prefix = clanName, MotD = "", ChatColor = "255,255,255" }, args.Player.User.ID))
+                if (Clans.ClansDb.AddClan(new Clan() { Name = clanName, Prefix = clanName, MotD = "", ChatColor = "255,255,255" }, args.Player.User.ID))
                 {
                     args.Player.SendInfoMessage("Your clan was created successfully.");
                 }
@@ -251,7 +251,7 @@ namespace ClansV2
             }
             else
             {
-                if (ClanManager.RemoveClan(players[args.Player.User.ID].Clan))
+                if (Clans.ClansDb.RemoveClan(players[args.Player.User.ID].Clan))
                 {
                     args.Player.SendSuccessMessage("Clan disbanded successfully.");
                 }
@@ -288,7 +288,7 @@ namespace ClansV2
                     }
                     else
                     {
-                        if (ClanManager.SetClanMotd(players[args.Player.User.ID].Clan, motd))
+                        if (Clans.ClansDb.SetClanMotd(players[args.Player.User.ID].Clan, motd))
                         {
                             args.Player.SendSuccessMessage("Clan MotD set successfully!");
                         }
@@ -345,7 +345,7 @@ namespace ClansV2
             }
             else
             {
-                if (ClanManager.SetClanPrefix(players[args.Player.User.ID].Clan, prefix))
+                if (Clans.ClansDb.SetClanPrefix(players[args.Player.User.ID].Clan, prefix))
                 {
                     args.Player.SendSuccessMessage("Clan prefix set successfully.");
                 }
@@ -387,7 +387,7 @@ namespace ClansV2
                 string[] ColorArr = color.Split(',');
                 if (ColorArr.Length == 3 && byte.TryParse(ColorArr[0], out r) && byte.TryParse(ColorArr[1], out g) && byte.TryParse(ColorArr[2], out b))
                 {
-                    if (ClanManager.SetClanColor(players[args.Player.User.ID].Clan, color))
+                    if (Clans.ClansDb.SetClanColor(players[args.Player.User.ID].Clan, color))
                     {
                         args.Player.SendSuccessMessage("Clan chat color set successfully.");
                     }
@@ -436,19 +436,19 @@ namespace ClansV2
                 TShock.Utils.SendMultipleMatchError(args.Player, userList.Select(p => p.Name));
                 return;
             }
-            else if (MemberManager.GetMemberByID(userList[0].ID) == null || MemberManager.GetMemberByID(userList[0].ID).Clan != players[args.Player.User.ID].Clan)
+            else if (Clans.MembersDb.GetMemberByID(userList[0].ID) == null || Clans.MembersDb.GetMemberByID(userList[0].ID).Clan != players[args.Player.User.ID].Clan)
             {
                 args.Player.SendErrorMessage("This player is not a member of your clan!");
                 return;
             }
-            else if (MemberManager.GetMemberByID(userList[0].ID).Rank.Item1 == (int)ClanRank.Leader)
+            else if (Clans.MembersDb.GetMemberByID(userList[0].ID).Rank.Item1 == (int)ClanRank.Leader)
             {
                 args.Player.SendErrorMessage("This player is already a leader.");
                 return;
             }
             else
             {
-                MemberManager.SetRank(MemberManager.GetMemberByID(userList[0].ID), new Tuple<int, string>((int)ClanRank.Leader, ClanRank.Leader.ToString()));
+                Clans.MembersDb.SetRank(Clans.MembersDb.GetMemberByID(userList[0].ID), new Tuple<int, string>((int)ClanRank.Leader, ClanRank.Leader.ToString()));
                 args.Player.SendInfoMessage("{0} has been promoted to Leader.", userList[0].Name);
             }
         }
@@ -488,19 +488,19 @@ namespace ClansV2
                 TShock.Utils.SendMultipleMatchError(args.Player, userList.Select(p => p.Name));
                 return;
             }
-            else if (MemberManager.GetMemberByID(userList[0].ID) == null || MemberManager.GetMemberByID(userList[0].ID).Clan != players[args.Player.User.ID].Clan)
+            else if (Clans.MembersDb.GetMemberByID(userList[0].ID) == null || Clans.MembersDb.GetMemberByID(userList[0].ID).Clan != players[args.Player.User.ID].Clan)
             {
                 args.Player.SendErrorMessage("This player is not a member of your clan!");
                 return;
             }
-            else if (MemberManager.GetMemberByID(userList[0].ID).Rank.Item1 != (int)ClanRank.Leader)
+            else if (Clans.MembersDb.GetMemberByID(userList[0].ID).Rank.Item1 != (int)ClanRank.Leader)
             {
                 args.Player.SendErrorMessage("This player is not a leader.");
                 return;
             }
             else
             {
-                MemberManager.SetRank(MemberManager.GetMemberByID(userList[0].ID), new Tuple<int, string>((int)ClanRank.Member, ClanRank.Member.ToString()));
+                Clans.MembersDb.SetRank(Clans.MembersDb.GetMemberByID(userList[0].ID), new Tuple<int, string>((int)ClanRank.Member, ClanRank.Member.ToString()));
                 args.Player.SendInfoMessage("{0} has been demted to Member.", userList[0].Name);
             }
         }
@@ -540,24 +540,24 @@ namespace ClansV2
                 TShock.Utils.SendMultipleMatchError(args.Player, userList.Select(p => p.Name));
                 return;
             }
-            else if (MemberManager.GetMemberByID(userList[0].ID) == null || MemberManager.GetMemberByID(userList[0].ID).Clan != players[args.Player.User.ID].Clan)
+            else if (Clans.MembersDb.GetMemberByID(userList[0].ID) == null || Clans.MembersDb.GetMemberByID(userList[0].ID).Clan != players[args.Player.User.ID].Clan)
             {
                 args.Player.SendErrorMessage("This player is not a part of your clan!");
                 return;
             }
-            else if (MemberManager.GetMemberByID(userList[0].ID).Rank.Item1 == (int)ClanRank.Founder)
+            else if (Clans.MembersDb.GetMemberByID(userList[0].ID).Rank.Item1 == (int)ClanRank.Founder)
             {
                 args.Player.SendErrorMessage("You can't kick the founder!");
                 return;
             }
-            else if (MemberManager.GetMemberByID(userList[0].ID).Rank.Item1 == (int)ClanRank.Leader && players[args.Player.User.ID].Rank.Item1 != (int)ClanRank.Founder)
+            else if (Clans.MembersDb.GetMemberByID(userList[0].ID).Rank.Item1 == (int)ClanRank.Leader && players[args.Player.User.ID].Rank.Item1 != (int)ClanRank.Founder)
             {
                 args.Player.SendErrorMessage("You can't kick another leader!");
                 return;
             }
             else
             {
-                MemberManager.RemoveMember(MemberManager.GetMemberByID(userList[0].ID), true);
+                Clans.MembersDb.RemoveMember(Clans.MembersDb.GetMemberByID(userList[0].ID), true);
             }
         }
 
@@ -578,11 +578,11 @@ namespace ClansV2
             {
                 if (players[args.Player.User.ID].Rank.Item1 == (int)ClanRank.Founder)
                 {
-                    ClanManager.RemoveClan(players[args.Player.User.ID].Clan);
+                    Clans.ClansDb.RemoveClan(players[args.Player.User.ID].Clan);
                 }
                 else
                 {
-                    MemberManager.RemoveMember(players[args.Player.User.ID], false);
+                    Clans.MembersDb.RemoveMember(players[args.Player.User.ID], false);
                 }
             }
         }
@@ -627,19 +627,19 @@ namespace ClansV2
                 args.Player.SendErrorMessage("The player is not logged in.");
                 return;
             }
-            else if (MemberManager.GetMemberByID(playerList[0].User.ID) != null)
+            else if (Clans.MembersDb.GetMemberByID(playerList[0].User.ID) != null)
             {
                 args.Player.SendErrorMessage("This player is already in a clan!");
                 return;
             }
-            else if (invites.ContainsKey(playerList[0].User.ID))
+            else if (Clans.InvitesDb.invites.ContainsKey(playerList[0].User.ID))
             {
                 args.Player.SendErrorMessage("This player alredy has a pending invitation.");
                 return;
             }
             else
             {
-                InviteManager.AddInvite(playerList[0].User.ID, players[args.Player.User.ID].Clan.Name);
+                Clans.InvitesDb.AddInvite(playerList[0].User.ID, players[args.Player.User.ID].Clan.Name);
                 playerList[0].SendInfoMessage("You have been invited to join clan: {0}", players[args.Player.User.ID].Clan.Name);
                 args.Player.SendSuccessMessage("You have invited {0} to join your clan!", playerList[0].Name);
             }
@@ -653,15 +653,15 @@ namespace ClansV2
                 return;
             }
 
-            if (!invites.ContainsKey(args.Player.User.ID))
+            if (!Clans.InvitesDb.invites.ContainsKey(args.Player.User.ID))
             {
                 args.Player.SendErrorMessage("You don't have a pending invitation!");
                 return;
             }
             else
             {
-                MemberManager.AddMember(new ClanMember() { UserID = args.Player.User.ID, Clan = ClanManager.GetClanByName(invites[args.Player.User.ID]), Rank = new Tuple<int, string>((int)ClanRank.Member, ClanRank.Member.ToString()) });
-                InviteManager.RemoveInvite(args.Player.User.ID);
+                Clans.MembersDb.AddMember(new ClanMember() { UserID = args.Player.User.ID, Clan = Clans.ClansDb.GetClanByName(Clans.InvitesDb.invites[args.Player.User.ID]), Rank = new Tuple<int, string>((int)ClanRank.Member, ClanRank.Member.ToString()) });
+                Clans.InvitesDb.RemoveInvite(args.Player.User.ID);
                 args.Player.SendSuccessMessage("You have successfully joined the clan!");
             }
         }
@@ -674,14 +674,14 @@ namespace ClansV2
                 return;
             }
             
-            if (!invites.ContainsKey(args.Player.User.ID))
+            if (!Clans.InvitesDb.invites.ContainsKey(args.Player.User.ID))
             {
                 args.Player.SendErrorMessage("You don't have a pending invitation!");
                 return;
             }
             else
             {
-                InviteManager.RemoveInvite(args.Player.User.ID);
+                Clans.InvitesDb.RemoveInvite(args.Player.User.ID);
                 args.Player.SendSuccessMessage("Clan invite declined successfully.");
             }
         }
@@ -705,7 +705,7 @@ namespace ClansV2
                 if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNum))
                     return;
 
-                var members = from m in MemberManager.GetMembersByClan(players[args.Player.User.ID].Clan.Name) orderby TShock.Users.GetUserByID(m.UserID).Name select TShock.Users.GetUserByID(m.UserID).Name;
+                var members = from m in Clans.MembersDb.GetMembersByClan(players[args.Player.User.ID].Clan.Name) orderby TShock.Users.GetUserByID(m.UserID).Name select TShock.Users.GetUserByID(m.UserID).Name;
                 PaginationTools.SendPage(args.Player, pageNum, PaginationTools.BuildLinesFromTerms(members), new PaginationTools.Settings()
                 {
                     HeaderFormat = "Clan Members ({0}/{1})",
@@ -720,7 +720,7 @@ namespace ClansV2
             if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNum))
                 return;
 
-            var clanList = from c in ClanManager.GetClans() orderby c.Name select c.Name;
+            var clanList = from c in Clans.ClansDb.GetClans() orderby c.Name select c.Name;
             PaginationTools.SendPage(args.Player, pageNum, PaginationTools.BuildLinesFromTerms(clanList), new PaginationTools.Settings()
             {
                 HeaderFormat = "Clan List ({0}/{1})",

@@ -19,7 +19,7 @@ namespace ClansV2.Managers
     public class ClanManager
     {
         private static IDbConnection db;
-        internal static void ConnectDB()
+        public void ConnectDB()
         {
             switch (TShock.Config.StorageType.ToLower())
             {
@@ -52,7 +52,7 @@ namespace ClansV2.Managers
                 new SqlColumn("ChatColor", MySqlDbType.VarChar)));
         }
 
-        internal static bool AddClan(Clan clan, int FounderID)
+        public bool AddClan(Clan clan, int FounderID)
         {
             if (GetClanByName(clan.Name) != null)
             {
@@ -63,7 +63,7 @@ namespace ClansV2.Managers
             {
                 ClanHooks.OnClanCreated(clan);
                 db.Query("INSERT INTO Clans (Name, Prefix, MotD, ChatColor) VALUES (@0, @1, @2, @3);", clan.Name, clan.Prefix, clan.MotD, clan.ChatColor);
-                MemberManager.AddMember(new ClanMember() { UserID = FounderID, Clan = clan, Rank = new Tuple<int, string>((int)ClanRank.Founder, ClanRank.Founder.ToString()) });
+                Clans.MembersDb.AddMember(new ClanMember() { UserID = FounderID, Clan = clan, Rank = new Tuple<int, string>((int)ClanRank.Founder, ClanRank.Founder.ToString()) });
                 return true;
             }
             catch (Exception ex)
@@ -73,15 +73,15 @@ namespace ClansV2.Managers
             }
         }
 
-        internal static bool RemoveClan(Clan clan)
+        public bool RemoveClan(Clan clan)
         {
             try
             {
                 ClanHooks.OnClanDisbanded(clan);
                 db.Query("DELETE FROM Clans WHERE Name=@0;", clan.Name);
-                foreach (ClanMember member in MemberManager.GetMembersByClan(clan.Name))
+                foreach (ClanMember member in Clans.MembersDb.GetMembersByClan(clan.Name))
                 {
-                    MemberManager.RemoveMember(member);
+                    Clans.MembersDb.RemoveMember(member);
                 }
 
                 return true;
@@ -93,7 +93,7 @@ namespace ClansV2.Managers
             }
         }
 
-        internal static bool SetClanPrefix(Clan clan, string prefix)
+        public bool SetClanPrefix(Clan clan, string prefix)
         {
             try
             {
@@ -104,7 +104,7 @@ namespace ClansV2.Managers
                 {
                     if (players[key].Clan == clan)
                     {
-                        players[key] = MemberManager.GetMemberByID(key);
+                        players[key] = Clans.MembersDb.GetMemberByID(key);
                     }
                 }
 
@@ -117,7 +117,7 @@ namespace ClansV2.Managers
             }
         }
 
-        internal static bool SetClanMotd(Clan clan, string motd)
+        public bool SetClanMotd(Clan clan, string motd)
         {
             try
             {
@@ -128,7 +128,7 @@ namespace ClansV2.Managers
                 {
                     if (players[key].Clan == clan)
                     {
-                        players[key] = MemberManager.GetMemberByID(key);
+                        players[key] = Clans.MembersDb.GetMemberByID(key);
                     }
                 }
 
@@ -141,7 +141,7 @@ namespace ClansV2.Managers
             }
         }
 
-        internal static bool SetClanColor(Clan clan, string color)
+        public bool SetClanColor(Clan clan, string color)
         {
             try
             {
@@ -152,7 +152,7 @@ namespace ClansV2.Managers
                 {
                     if (players[key].Clan == clan)
                     {
-                        players[key] = MemberManager.GetMemberByID(key);
+                        players[key] = Clans.MembersDb.GetMemberByID(key);
                     }
                 }
 
@@ -174,7 +174,7 @@ namespace ClansV2.Managers
             return clan;
         }
 
-        internal static Clan GetClanByName(string name)
+        public Clan GetClanByName(string name)
         {
             using (QueryResult reader = db.QueryReader("SELECT * FROM Clans WHERE Name=@0;", name))
             {
@@ -187,7 +187,7 @@ namespace ClansV2.Managers
             return null;
         }
 
-        internal static List<Clan> GetClans()
+        public List<Clan> GetClans()
         {
             List<Clan> clans = new List<Clan>();
             using (QueryResult reader = db.QueryReader("SELECT * FROM Clans"))

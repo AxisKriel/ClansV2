@@ -21,8 +21,11 @@ namespace ClansV2
         public override string Description { get { return ""; } }
         public override Version Version { get { return new Version(1, 0, 0, 0); } }
 
-        internal static ConfigFile Config;
-        internal static Dictionary<int, string> invites = new Dictionary<int, string>();
+        public static ConfigFile Config;
+        public static InviteManager InvitesDb = new InviteManager();
+        public static ClanManager ClansDb = new ClanManager();
+        public static MemberManager MembersDb = new MemberManager();
+
         internal static Dictionary<int, ClanMember> players = new Dictionary<int, ClanMember>();
 
         public Clans(Main game) : base(game)
@@ -68,9 +71,7 @@ namespace ClansV2
         private void OnInitialize(EventArgs args)
         {
             LoadConfig();
-            InviteManager.ConnectDB();
-            ClanManager.ConnectDB();
-            MemberManager.ConnectDB();
+            InvitesDb.ConnectDB();
 
             Commands.ChatCommands.Add(new Command("clans.use", ClanCommands.ClanChatCommand, "c", "csay"));
             Commands.ChatCommands.Add(new Command("clans.use", ClanCommands.MainCommand, "clan"));
@@ -111,9 +112,9 @@ namespace ClansV2
             if (players.ContainsKey(args.Player.User.ID))
                 players.Remove(args.Player.User.ID);
 
-            if (MemberManager.GetMemberByID(args.Player.User.ID) != null)
+            if (MembersDb.GetMemberByID(args.Player.User.ID) != null)
             {
-                players.Add(args.Player.User.ID, MemberManager.GetMemberByID(args.Player.User.ID));
+                players.Add(args.Player.User.ID, MembersDb.GetMemberByID(args.Player.User.ID));
             }
         }
 

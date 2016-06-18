@@ -13,9 +13,11 @@ using static ClansV2.Clans;
 namespace ClansV2.Managers
 {
     public class InviteManager
-    { 
+    {
+        public Dictionary<int, string> invites = new Dictionary<int, string>();
+
         private static IDbConnection db;
-        internal static void ConnectDB()
+        internal void ConnectDB()
         {
             switch (TShock.Config.StorageType.ToLower())
             {
@@ -46,13 +48,13 @@ namespace ClansV2.Managers
                 new SqlColumn("Clan", MySqlDbType.VarChar)));
         }
 
-        internal static void AddInvite(int userID, string clan)
+        public void AddInvite(int userID, string clan)
         {
             invites.Add(userID, clan);
             db.Query("INSERT INTO ClanInvites (UserID, Clan) VALUES (@0, @1);", userID.ToString(), clan);
         }
 
-        internal static void RemoveInvite(int userID)
+        public void RemoveInvite(int userID)
         {
             invites.Remove(userID);
             db.Query("DELETE FROM ClanInvites WHERE UserID=@0;", userID.ToString());

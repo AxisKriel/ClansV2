@@ -17,7 +17,7 @@ namespace ClansV2.Managers
     public class MemberManager
     {
         private static IDbConnection db;
-        internal static void ConnectDB()
+        public void ConnectDB()
         {
             switch (TShock.Config.StorageType.ToLower())
             {
@@ -49,14 +49,14 @@ namespace ClansV2.Managers
                 new SqlColumn("Rank", MySqlDbType.VarChar)));
         }
 
-        internal static void AddMember(ClanMember member)
+        public void AddMember(ClanMember member)
         {
             ClanHooks.OnClanJoined(member.Clan, member);
             players.Add(member.UserID, member);
             db.Query("INSERT INTO ClanMembers (UserID, Clan, Rank) VALUES (@0, @1, @2);", member.UserID.ToString(), member.Clan.Name, JsonConvert.SerializeObject(member.Rank, Formatting.Indented));
         }
 
-        internal static void RemoveMember(ClanMember member, bool kick = false)
+        public void RemoveMember(ClanMember member, bool kick = false)
         {
             ClanHooks.OnClanLeft(member.Clan, member, kick);
             if (players.ContainsKey(member.UserID))
@@ -65,7 +65,7 @@ namespace ClansV2.Managers
             db.Query("DELETE FROM ClanMembers WHERE UserID=@0;", member.UserID.ToString());
         }
 
-        internal static void SetRank(ClanMember member, Tuple<int, string> rank)
+        public void SetRank(ClanMember member, Tuple<int, string> rank)
         {
             member.Rank = rank;
             if (players.ContainsKey(member.UserID)) 
@@ -77,12 +77,12 @@ namespace ClansV2.Managers
         internal static ClanMember LoadMemberFromResult(ClanMember member, QueryResult reader)
         {
             member.UserID = reader.Get<int>("UserID");
-            member.Clan = ClanManager.GetClanByName(reader.Get<string>("Clan"));
+            member.Clan = Clans.ClansDb.GetClanByName(reader.Get<string>("Clan"));
             member.Rank = JsonConvert.DeserializeObject<Tuple<int, string>>(reader.Get<string>("Rank"));
             return member;
         }
 
-        internal static ClanMember GetMemberByID(int ID)
+        public ClanMember GetMemberByID(int ID)
         {
             using (QueryResult reader = db.QueryReader("SELECT * FROM ClanMembers WHERE UserID=@0;", ID.ToString()))
             {
@@ -95,7 +95,7 @@ namespace ClansV2.Managers
             return null;
         }
 
-        internal static List<ClanMember> GetMembersByClan(string clanName)
+        public List<ClanMember> GetMembersByClan(string clanName)
         {
             List<ClanMember> members = new List<ClanMember>();
             using (QueryResult reader = db.QueryReader("SELECT * FROM ClanMembers WHERE Clan=@0;", clanName))
