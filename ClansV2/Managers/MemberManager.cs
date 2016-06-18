@@ -52,25 +52,18 @@ namespace ClansV2.Managers
         public void AddMember(ClanMember member)
         {
             ClanHooks.OnClanJoined(member.Clan, member);
-            players.Add(member.UserID, member);
             db.Query("INSERT INTO ClanMembers (UserID, Clan, Rank) VALUES (@0, @1, @2);", member.UserID.ToString(), member.Clan.Name, JsonConvert.SerializeObject(member.Rank, Formatting.Indented));
         }
 
         public void RemoveMember(ClanMember member, bool kick = false)
         {
             ClanHooks.OnClanLeft(member.Clan, member, kick);
-            if (players.ContainsKey(member.UserID))
-                players.Remove(member.UserID);
-
             db.Query("DELETE FROM ClanMembers WHERE UserID=@0;", member.UserID.ToString());
         }
 
         public void SetRank(ClanMember member, Tuple<int, string> rank)
         {
             member.Rank = rank;
-            if (players.ContainsKey(member.UserID)) 
-                players[member.UserID] = GetMemberByID(member.UserID);
-
             db.Query("UPDATE ClanMembers SET Rank=@0 WHERE UserID=@1;", JsonConvert.SerializeObject(member.Rank, Formatting.Indented), member.UserID.ToString());
         }
 

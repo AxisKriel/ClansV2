@@ -26,8 +26,6 @@ namespace ClansV2
         public static ClanManager ClansDb = new ClanManager();
         public static MemberManager MembersDb = new MemberManager();
 
-        internal static Dictionary<int, ClanMember> players = new Dictionary<int, ClanMember>();
-
         public Clans(Main game) : base(game)
         {
 
@@ -38,8 +36,8 @@ namespace ClansV2
         {
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
             ServerApi.Hooks.ServerChat.Register(this, OnChat);
-            ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
-            PlayerHooks.PlayerPostLogin += OnPostLogin;
+            //ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
+            //PlayerHooks.PlayerPostLogin += OnPostLogin;
             GeneralHooks.ReloadEvent += OnReload;
 
             ClanHooks.ClanCreated += OnClanCreated;
@@ -54,8 +52,8 @@ namespace ClansV2
             {
                 ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
                 ServerApi.Hooks.ServerChat.Deregister(this, OnChat);
-                ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
-                PlayerHooks.PlayerPostLogin -= OnPostLogin;
+                //ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
+                //PlayerHooks.PlayerPostLogin -= OnPostLogin;
                 GeneralHooks.ReloadEvent -= OnReload;
 
                 ClanHooks.ClanCreated -= OnClanCreated;
@@ -87,9 +85,9 @@ namespace ClansV2
             TSPlayer tsplr = TShock.Players[args.Who];
             if (!args.Text.StartsWith(TShock.Config.CommandSpecifier) && !args.Text.StartsWith(TShock.Config.CommandSilentSpecifier))
             {
-                if (tsplr.IsLoggedIn && !tsplr.mute && tsplr.Group.HasPermission(Permissions.canchat) && players.ContainsKey(tsplr.User.ID))
+                if (tsplr.GetPlayerInfo() != null && !tsplr.mute && tsplr.Group.HasPermission(Permissions.canchat))
                 {
-                    Clan clan = players[tsplr.User.ID].Clan;
+                    Clan clan = tsplr.GetPlayerInfo().Clan;
                     string message = string.Format(Config.ChatFormat, tsplr.Group.Name, tsplr.Group.Prefix, clan.Prefix, tsplr.Name, tsplr.Group.Suffix, args.Text);
                     TSPlayer.All.SendMessage(message, Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : tsplr.Group.ChatColor.ParseColor());
                     TSPlayer.Server.SendMessage(message, Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : tsplr.Group.ChatColor.ParseColor());
@@ -99,26 +97,26 @@ namespace ClansV2
             }
         }
 
-        private void OnLeave(LeaveEventArgs args)
-        {
-            if (TShock.Players[args.Who] == null || TShock.Players[args.Who].User == null)
-                return;
+        //private void OnLeave(LeaveEventArgs args)
+        //{
+        //    if (TShock.Players[args.Who] == null || TShock.Players[args.Who].User == null)
+        //        return;
 
-            if (players.ContainsKey(TShock.Players[args.Who].User.ID))
-                players.Remove(TShock.Players[args.Who].User.ID);
-        }
+        //    if (players.ContainsKey(TShock.Players[args.Who].User.ID))
+        //        players.Remove(TShock.Players[args.Who].User.ID);
+        //}
 
-        private void OnPostLogin(PlayerPostLoginEventArgs args)
-        {
-            // TODO: TSPlayer extension so I don't have to add/remove players from the dictionary
-            if (players.ContainsKey(args.Player.User.ID))
-                players.Remove(args.Player.User.ID);
+        //private void OnPostLogin(PlayerPostLoginEventArgs args)
+        //{
+              // TODO: TSPlayer extension so I don't have to add/remove players from the dictionary
+        //    if (players.ContainsKey(args.Player.User.ID))
+        //        players.Remove(args.Player.User.ID);
 
-            if (MembersDb.GetMemberByID(args.Player.User.ID) != null)
-            {
-                players.Add(args.Player.User.ID, MembersDb.GetMemberByID(args.Player.User.ID));
-            }
-        }
+        //    if (MembersDb.GetMemberByID(args.Player.User.ID) != null)
+        //    {
+        //        players.Add(args.Player.User.ID, MembersDb.GetMemberByID(args.Player.User.ID));
+        //    }
+        //}
 
         private void OnReload(ReloadEventArgs args)
         {

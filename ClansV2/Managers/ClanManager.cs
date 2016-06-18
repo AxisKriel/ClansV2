@@ -99,15 +99,6 @@ namespace ClansV2.Managers
             {
                 clan.Prefix = prefix;
                 db.Query("UPDATE Clans SET Prefix=@0 WHERE Name=@1;", prefix, clan.Name);
-
-                foreach (int key in players.Keys.ToList())
-                {
-                    if (players[key].Clan == clan)
-                    {
-                        players[key] = Clans.MembersDb.GetMemberByID(key);
-                    }
-                }
-
                 return true;
             }
             catch (Exception ex)
@@ -123,15 +114,6 @@ namespace ClansV2.Managers
             {
                 clan.MotD = motd;
                 db.Query("UPDATE Clans SET MotD=@0 WHERE Name=@1;", motd, clan.Name);
-
-                foreach (int key in players.Keys.ToList())
-                {
-                    if (players[key].Clan == clan)
-                    {
-                        players[key] = Clans.MembersDb.GetMemberByID(key);
-                    }
-                }
-
                 return true;
             }
             catch (Exception ex)
@@ -147,15 +129,6 @@ namespace ClansV2.Managers
             {
                 clan.ChatColor = color;
                 db.Query("UPDATE Clans SET ChatColor=@0 WHERE Name=@1;", color, clan.Name);
-
-                foreach (int key in players.Keys.ToList())
-                {
-                    if (players[key].Clan == clan)
-                    {
-                        players[key] = Clans.MembersDb.GetMemberByID(key);
-                    }
-                }
-
                 return true;
             }
             catch (Exception ex)

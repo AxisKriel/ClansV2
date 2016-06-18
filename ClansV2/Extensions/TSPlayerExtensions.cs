@@ -14,9 +14,11 @@ namespace ClansV2.Extensions
             if (tsPlayer.User == null)
                 return null;
 
-            if (!tsPlayer.ContainsData("Clans_Data"))
-                tsPlayer.SetData("Clans_Data", Clans.MembersDb.GetMemberByID(tsPlayer.User.ID));
-            return tsPlayer.GetData<ClanMember>("Clans_Data");
+            //if (!tsPlayer.ContainsData("Clans_Data"))
+            //    tsPlayer.SetData("Clans_Data", Clans.MembersDb.GetMemberByID(tsPlayer.User.ID));
+            //return tsPlayer.GetData<ClanMember>("Clans_Data");
+
+            return Clans.MembersDb.GetMemberByID(tsPlayer.User.ID);
         }
     }
 }

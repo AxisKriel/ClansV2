@@ -28,7 +28,7 @@ namespace ClansV2.Managers
         {
             foreach (TSPlayer tsplr in TShock.Players.Where(tsplr => tsplr != null && tsplr.IsLoggedIn))
             {
-                if (Clans.players.ContainsKey(tsplr.User.ID) && Clans.players[tsplr.User.ID].Clan == this)
+                if (tsplr.GetPlayerInfo() != null && tsplr.GetPlayerInfo().Clan == this)
                 {
                     tsplr.SendMessage(string.Format(message, args), ChatColor.ParseColor());
                 }
