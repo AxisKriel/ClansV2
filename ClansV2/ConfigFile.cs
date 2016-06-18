@@ -11,7 +11,6 @@ namespace ClansV2
     {
         public string ChatFormat { get; set; }
         public bool ChatColorsEnabled { get; set; }
-        public int MaxNumberOfClans { get; set; }
         public int NameLength { get; set; }
         public int PrefixLength { get; set; }
 
