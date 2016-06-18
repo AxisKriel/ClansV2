@@ -40,6 +40,8 @@ namespace ClansV2
 
             ClanHooks.ClanCreated += OnClanCreated;
             ClanHooks.ClanDisbanded += OnClanDisbanded;
+            ClanHooks.ClanJoined += OnClanJoined;
+            ClanHooks.ClanLeft += OnClanLeft;
         }
 
         protected override void Dispose(bool disposing)
@@ -54,6 +56,8 @@ namespace ClansV2
 
                 ClanHooks.ClanCreated -= OnClanCreated;
                 ClanHooks.ClanDisbanded -= OnClanDisbanded;
+                ClanHooks.ClanJoined -= OnClanJoined;
+                ClanHooks.ClanLeft -= OnClanLeft;
             }
             base.Dispose(disposing);
         }
@@ -81,8 +85,8 @@ namespace ClansV2
                 {
                     Clan clan = players[tsplr.User.ID].Clan;
                     string message = string.Format(Config.ChatFormat, tsplr.Group.Name, tsplr.Group.Prefix, clan.Prefix, tsplr.Name, tsplr.Group.Suffix, args.Text);
-                    TSPlayer.All.SendMessage(message, clan.ChatColor.ParseColor());
-                    TSPlayer.Server.SendMessage(message, clan.ChatColor.ParseColor());
+                    TSPlayer.All.SendMessage(message, Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : tsplr.Group.ChatColor.ParseColor());
+                    TSPlayer.Server.SendMessage(message, Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : tsplr.Group.ChatColor.ParseColor());
 
                     args.Handled = true;
                 }
@@ -100,6 +104,7 @@ namespace ClansV2
 
         private void OnPostLogin(PlayerPostLoginEventArgs args)
         {
+            // TODO: TSPlayer extension so I don't have to add/remove players from the dictionary
             if (players.ContainsKey(args.Player.User.ID))
                 players.Remove(args.Player.User.ID);
 
@@ -124,6 +129,22 @@ namespace ClansV2
         private void OnClanDisbanded(ClanDisbandedEventArgs args)
         {
             TSPlayer.All.SendInfoMessage("Clan '{0}' has been disbanded!", args.Clan.Name);
+        }
+
+        private void OnClanJoined(ClanJoinedEventArgs args)
+        {
+            args.Clan.SendClanMessage("(Clan) {0} has joined the clan!", TShock.Users.GetUserByID(args.Player.UserID).Name);
+        }
+
+        private void OnClanLeft(ClanLeftEventArgs args)
+        {
+            if (args.Kick)
+            {
+                args.Clan.SendClanMessage("(Clan) {0} has been kicked from the clan!", TShock.Users.GetUserByID(args.Player.UserID).Name);
+                return;
+            }
+
+            args.Clan.SendClanMessage("(Clan) {0} has left the clan!", TShock.Users.GetUserByID(args.Player.UserID).Name);
         }
         #endregion
 

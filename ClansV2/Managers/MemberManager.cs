@@ -9,6 +9,7 @@ using TShockAPI.DB;
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
+using ClansV2.Hooks;
 using static ClansV2.Clans;
 
 namespace ClansV2.Managers
@@ -50,12 +51,14 @@ namespace ClansV2.Managers
 
         internal static void AddMember(ClanMember member)
         {
+            ClanHooks.OnClanJoined(member.Clan, member);
             players.Add(member.UserID, member);
             db.Query("INSERT INTO ClanMembers (UserID, Clan, Rank) VALUES (@0, @1, @2);", member.UserID.ToString(), member.Clan.Name, JsonConvert.SerializeObject(member.Rank, Formatting.Indented));
         }
 
-        internal static void RemoveMember(ClanMember member)
+        internal static void RemoveMember(ClanMember member, bool kick = false)
         {
+            ClanHooks.OnClanLeft(member.Clan, member, kick);
             if (players.ContainsKey(member.UserID))
                 players.Remove(member.UserID);
 

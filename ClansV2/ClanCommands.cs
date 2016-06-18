@@ -281,5 +281,50 @@ namespace ClansV2
                 }
             }
         }
+
+        private static void SetColor(CommandArgs args)
+        {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+
+            if (args.Parameters.Count != 2)
+            {
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}clan color <rrr,ggg,bbb>", TShock.Config.CommandSpecifier);
+                return;
+            }
+
+            if (!players.ContainsKey(args.Player.User.ID))
+            {
+                args.Player.SendErrorMessage("You are not in a clan!");
+                return;
+            }
+            else if (players[args.Player.User.ID].Rank.Item1 != (int)ClanRank.Founder)
+            {
+                args.Player.SendErrorMessage("Only clan founders can change the clan's chat color.");
+                return;
+            }
+            else
+            {
+                byte r, g, b;
+                string color = args.Parameters[1];
+                string[] ColorArr = color.Split(',');
+                if (ColorArr.Length == 3 && byte.TryParse(ColorArr[0], out r) && byte.TryParse(ColorArr[1], out g) && byte.TryParse(ColorArr[2], out b))
+                {
+                    if (ClanManager.SetClanColor(players[args.Player.User.ID].Clan, color))
+                    {
+                        args.Player.SendSuccessMessage("Clan chat color set successfully.");
+                    }
+                    else
+                    {
+                        args.Player.SendErrorMessage("Something went wrong... Check logs for more details.");
+                    }
+                }
+                else
+                    args.Player.SendErrorMessage("Invalid color format!");
+            }
+        }
     }
 }
