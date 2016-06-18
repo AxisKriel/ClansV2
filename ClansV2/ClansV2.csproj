@@ -59,6 +59,7 @@
     <Compile Include="Clans.cs" />
     <Compile Include="ConfigFile.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Extensions\TSPlayerExtensions.cs" />
     <Compile Include="Hooks\ClanHooks.cs" />
     <Compile Include="Managers\Clan.cs" />
     <Compile Include="Managers\ClanMember.cs" />

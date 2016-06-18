@@ -72,6 +72,8 @@ namespace ClansV2
         {
             LoadConfig();
             InvitesDb.ConnectDB();
+            ClansDb.ConnectDB();
+            MembersDb.ConnectDB();
 
             Commands.ChatCommands.Add(new Command("clans.use", ClanCommands.ClanChatCommand, "c", "csay"));
             Commands.ChatCommands.Add(new Command("clans.use", ClanCommands.MainCommand, "clan"));
