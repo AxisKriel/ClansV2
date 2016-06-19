@@ -418,7 +418,7 @@ namespace ClansV2
         {
             if (args.Parameters.Count != 2)
             {
-                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}clan promote <player name>", TShock.Config.CommandSpecifier);
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}clan demote <player name>", TShock.Config.CommandSpecifier);
                 return;
             }
 
@@ -456,7 +456,7 @@ namespace ClansV2
             else
             {
                 Clans.MembersDb.SetRank(Clans.MembersDb.GetMemberByID(userList[0].ID), new Tuple<int, string>((int)ClanRank.Member, ClanRank.Member.ToString()));
-                args.Player.SendInfoMessage("{0} has been demted to Member.", userList[0].Name);
+                args.Player.SendInfoMessage("{0} has been demoted to Member.", userList[0].Name);
             }
         }
 
