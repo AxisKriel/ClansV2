@@ -36,8 +36,6 @@ namespace ClansV2
         {
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
             ServerApi.Hooks.ServerChat.Register(this, OnChat);
-            //ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
-            //PlayerHooks.PlayerPostLogin += OnPostLogin;
             GeneralHooks.ReloadEvent += OnReload;
 
             ClanHooks.ClanCreated += OnClanCreated;
@@ -52,8 +50,6 @@ namespace ClansV2
             {
                 ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
                 ServerApi.Hooks.ServerChat.Deregister(this, OnChat);
-                //ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
-                //PlayerHooks.PlayerPostLogin -= OnPostLogin;
                 GeneralHooks.ReloadEvent -= OnReload;
 
                 ClanHooks.ClanCreated -= OnClanCreated;
@@ -96,27 +92,6 @@ namespace ClansV2
                 }
             }
         }
-
-        //private void OnLeave(LeaveEventArgs args)
-        //{
-        //    if (TShock.Players[args.Who] == null || TShock.Players[args.Who].User == null)
-        //        return;
-
-        //    if (players.ContainsKey(TShock.Players[args.Who].User.ID))
-        //        players.Remove(TShock.Players[args.Who].User.ID);
-        //}
-
-        //private void OnPostLogin(PlayerPostLoginEventArgs args)
-        //{
-              // TODO: TSPlayer extension so I don't have to add/remove players from the dictionary
-        //    if (players.ContainsKey(args.Player.User.ID))
-        //        players.Remove(args.Player.User.ID);
-
-        //    if (MembersDb.GetMemberByID(args.Player.User.ID) != null)
-        //    {
-        //        players.Add(args.Player.User.ID, MembersDb.GetMemberByID(args.Player.User.ID));
-        //    }
-        //}
 
         private void OnReload(ReloadEventArgs args)
         {

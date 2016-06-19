@@ -61,9 +61,9 @@ namespace ClansV2.Managers
             db.Query("DELETE FROM ClanMembers WHERE UserID=@0;", member.UserID.ToString());
         }
 
-        public void SetRank(ClanMember member, Tuple<int, string> rank)
+        public void SetRank(ClanMember member, ClanRank rank)
         {
-            member.Rank = rank;
+            member.Rank = new Tuple<int, string>((int)rank, rank.ToString());
             db.Query("UPDATE ClanMembers SET Rank=@0 WHERE UserID=@1;", JsonConvert.SerializeObject(member.Rank, Formatting.Indented), member.UserID.ToString());
         }
 

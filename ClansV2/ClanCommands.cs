@@ -409,7 +409,7 @@ namespace ClansV2
             }
             else
             {
-                Clans.MembersDb.SetRank(Clans.MembersDb.GetMemberByID(userList[0].ID), new Tuple<int, string>((int)ClanRank.Leader, ClanRank.Leader.ToString()));
+                Clans.MembersDb.SetRank(Clans.MembersDb.GetMemberByID(userList[0].ID), ClanRank.Leader);
                 args.Player.SendInfoMessage("{0} has been promoted to Leader.", userList[0].Name);
             }
         }
@@ -455,7 +455,7 @@ namespace ClansV2
             }
             else
             {
-                Clans.MembersDb.SetRank(Clans.MembersDb.GetMemberByID(userList[0].ID), new Tuple<int, string>((int)ClanRank.Member, ClanRank.Member.ToString()));
+                Clans.MembersDb.SetRank(Clans.MembersDb.GetMemberByID(userList[0].ID), ClanRank.Member);
                 args.Player.SendInfoMessage("{0} has been demoted to Member.", userList[0].Name);
             }
         }

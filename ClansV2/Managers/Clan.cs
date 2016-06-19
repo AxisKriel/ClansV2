@@ -26,7 +26,7 @@ namespace ClansV2.Managers
 
         public void SendClanMessage(string message, params object[] args)
         {
-            foreach (TSPlayer tsplr in TShock.Players.Where(tsplr => tsplr != null && tsplr.IsLoggedIn))
+            foreach (TSPlayer tsplr in TShock.Players.Where(tsplr => tsplr != null))
             {
                 if (tsplr.GetPlayerInfo() != null && tsplr.GetPlayerInfo().Clan == this)
                 {
