@@ -170,6 +170,8 @@ namespace ClansV2
                 "clan motd [message] - prints or sets the clan's MotD",
                 "clan prefix <prefix> - sets the clan's prefix",
                 "clan color <rrr,ggg,bbb> - sets the chat color of the clan",
+                "clan promote <member name> - promotes a player to Leader",
+                "clan demote <member name> - demotes a player to Member",
                 "clan kick <member name> - kicks a member from the clan",
                 "clan quit - leaves your current clan",
                 "clan invite <player name> - invites a player to your clan",
