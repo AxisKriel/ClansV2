@@ -78,6 +78,9 @@ namespace ClansV2
             if (args.Handled)
                 return;
 
+            if (string.IsNullOrWhiteSpace(Config.ChatFormat))
+                return;
+
             TSPlayer tsplr = TShock.Players[args.Who];
             if (!args.Text.StartsWith(TShock.Config.CommandSpecifier) && !args.Text.StartsWith(TShock.Config.CommandSilentSpecifier))
             {

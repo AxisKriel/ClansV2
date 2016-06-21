@@ -191,6 +191,12 @@ namespace ClansV2
 
         private static void CreateClan(CommandArgs args)
         {
+            if (!args.Player.IsLoggedIn)
+            {
+                args.Player.SendErrorMessage("You are not logged in!");
+                return;
+            }
+
             if (args.Parameters.Count < 2)
             {
                 args.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}clan create <clan name>", TShock.Config.CommandSpecifier);
@@ -569,9 +575,9 @@ namespace ClansV2
                 args.Player.SendErrorMessage("This player is already in a clan!");
                 return;
             }
-            else if (Clans.InvitesDb.invites.ContainsKey(playerList[0].User.ID))
+            else if (Clans.InvitesDb.Invites.ContainsKey(playerList[0].User.ID))
             {
-                args.Player.SendErrorMessage("This player alredy has a pending invitation.");
+                args.Player.SendErrorMessage("This player already has a pending invitation.");
                 return;
             }
             else
@@ -590,14 +596,14 @@ namespace ClansV2
                 return;
             }
 
-            if (!Clans.InvitesDb.invites.ContainsKey(args.Player.User.ID))
+            if (!Clans.InvitesDb.Invites.ContainsKey(args.Player.User.ID))
             {
                 args.Player.SendErrorMessage("You don't have a pending invitation!");
                 return;
             }
             else
             {
-                Clans.MembersDb.AddMember(new ClanMember() { UserID = args.Player.User.ID, Clan = Clans.ClansDb.GetClanByName(Clans.InvitesDb.invites[args.Player.User.ID]), Rank = new Tuple<int, string>((int)ClanRank.Member, ClanRank.Member.ToString()) });
+                Clans.MembersDb.AddMember(new ClanMember() { UserID = args.Player.User.ID, Clan = Clans.ClansDb.GetClanByName(Clans.InvitesDb.Invites[args.Player.User.ID]), Rank = new Tuple<int, string>((int)ClanRank.Member, ClanRank.Member.ToString()) });
                 Clans.InvitesDb.RemoveInvite(args.Player.User.ID);
                 args.Player.SendSuccessMessage("You have successfully joined the clan!");
             }
@@ -611,7 +617,7 @@ namespace ClansV2
                 return;
             }
             
-            if (!Clans.InvitesDb.invites.ContainsKey(args.Player.User.ID))
+            if (!Clans.InvitesDb.Invites.ContainsKey(args.Player.User.ID))
             {
                 args.Player.SendErrorMessage("You don't have a pending invitation!");
                 return;

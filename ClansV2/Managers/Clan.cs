@@ -16,12 +16,22 @@ namespace ClansV2.Managers
 
         public static bool operator ==(Clan clan, Clan clan2)
         {
+            if (ReferenceEquals(clan, clan2))
+            {
+                return true;
+            }
+
+            if ((object)clan == null || (object)clan2 == null)
+            {
+                return false;
+            }
+
             return clan.Name == clan2.Name;
         }
 
         public static bool operator !=(Clan clan, Clan clan2)
         {
-            return clan.Name != clan2.Name;
+            return !(clan == clan2);
         }
 
         public void SendClanMessage(string message, params object[] args)
