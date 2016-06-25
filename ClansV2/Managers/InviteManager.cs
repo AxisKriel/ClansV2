@@ -45,7 +45,7 @@ namespace ClansV2.Managers
 
             sqlcreator.EnsureTableStructure(new SqlTable("ClanInvites",
                 new SqlColumn("UserID", MySqlDbType.Int32),
-                new SqlColumn("Clan", MySqlDbType.VarChar)));
+                new SqlColumn("Clan", MySqlDbType.VarChar, 50)));
         }
 
         public void AddInvite(int userID, string clan)

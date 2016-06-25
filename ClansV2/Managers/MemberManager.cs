@@ -45,8 +45,8 @@ namespace ClansV2.Managers
 
             sqlcreator.EnsureTableStructure(new SqlTable("ClanMembers",
                 new SqlColumn("UserID", MySqlDbType.Int32),
-                new SqlColumn("Clan", MySqlDbType.VarChar),
-                new SqlColumn("Rank", MySqlDbType.VarChar)));
+                new SqlColumn("Clan", MySqlDbType.VarChar, 50),
+                new SqlColumn("Rank", MySqlDbType.VarChar, 50)));
         }
 
         public void AddMember(ClanMember member)

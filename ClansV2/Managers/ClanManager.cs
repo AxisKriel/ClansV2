@@ -46,10 +46,10 @@ namespace ClansV2.Managers
             SqlTableCreator sqlcreator = new SqlTableCreator(db, db.GetSqlType() == SqlType.Sqlite ? (IQueryBuilder)new SqliteQueryCreator() : new MysqlQueryCreator());
 
             sqlcreator.EnsureTableStructure(new SqlTable("Clans",
-                new SqlColumn("Name", MySqlDbType.VarChar),
-                new SqlColumn("Prefix", MySqlDbType.VarChar),
-                new SqlColumn("MotD", MySqlDbType.VarChar),
-                new SqlColumn("ChatColor", MySqlDbType.VarChar)));
+                new SqlColumn("Name", MySqlDbType.VarChar, 50),
+                new SqlColumn("Prefix", MySqlDbType.VarChar, 50),
+                new SqlColumn("MotD", MySqlDbType.VarChar, 50),
+                new SqlColumn("ChatColor", MySqlDbType.VarChar, 50)));
         }
 
         public bool AddClan(Clan clan, int FounderID)
