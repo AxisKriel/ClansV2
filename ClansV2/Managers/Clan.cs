@@ -7,50 +7,50 @@ using ClansV2.Extensions;
 
 namespace ClansV2.Managers
 {
-    public class Clan
-    {
-        public string Name { get; set; }
-        public string Prefix { get; set; }
-        public string MotD { get; set; }
-        public string ChatColor { get; set; }
+	public class Clan
+	{
+		public string Name { get; set; }
+		public string Prefix { get; set; }
+		public string MotD { get; set; }
+		public string ChatColor { get; set; }
 
-        public static bool operator ==(Clan clan, Clan clan2)
-        {
-            if (ReferenceEquals(clan, clan2))
-            {
-                return true;
-            }
+		public static bool operator ==(Clan clan, Clan clan2)
+		{
+			if (ReferenceEquals(clan, clan2))
+			{
+				return true;
+			}
 
-            if ((object)clan == null || (object)clan2 == null)
-            {
-                return false;
-            }
+			if ((object)clan == null || (object)clan2 == null)
+			{
+				return false;
+			}
 
-            return clan.Name == clan2.Name;
-        }
+			return clan.Name == clan2.Name;
+		}
 
-        public static bool operator !=(Clan clan, Clan clan2)
-        {
-            return !(clan == clan2);
-        }
+		public static bool operator !=(Clan clan, Clan clan2)
+		{
+			return !(clan == clan2);
+		}
 
-        public void SendClanMessage(string message, params object[] args)
-        {
-            foreach (TSPlayer tsplr in TShock.Players.Where(tsplr => tsplr != null))
-            {
-                if (tsplr.GetPlayerInfo() != null && tsplr.GetPlayerInfo().Clan == this)
-                {
-                    tsplr.SendMessage(string.Format(message, args), ChatColor.ParseColor());
-                }
-            }
-        }
+		public void SendClanMessage(string message, params object[] args)
+		{
+			foreach (TSPlayer tsplr in TShock.Players.Where(tsplr => tsplr != null))
+			{
+				if (tsplr.GetPlayerInfo() != null && tsplr.GetPlayerInfo().Clan == this)
+				{
+					tsplr.SendMessage(string.Format(message, args), ChatColor.ParseColor());
+				}
+			}
+		}
 
-        public Clan()
-        {
-            Name = "";
-            Prefix = "";
-            MotD = "";
-            ChatColor = "";
-        }
-    }
+		public Clan()
+		{
+			Name = "";
+			Prefix = "";
+			MotD = "";
+			ChatColor = "";
+		}
+	}
 }

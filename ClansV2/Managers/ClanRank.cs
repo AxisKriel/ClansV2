@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace ClansV2.Managers
 {
-    public enum ClanRank
-    {
-        Founder = 1,
-        Leader,
-        Member
-    }
+	public enum ClanRank
+	{
+		Founder = 1,
+		Leader,
+		Member
+	}
 }

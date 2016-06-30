@@ -72,6 +72,7 @@
     <Compile Include="Managers\ClanRank.cs" />
     <Compile Include="Managers\InviteManager.cs" />
     <Compile Include="Managers\MemberManager.cs" />
+    <Compile Include="Permissions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />
