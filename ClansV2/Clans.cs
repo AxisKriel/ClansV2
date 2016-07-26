@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using Terraria;
 using TerrariaApi.Server;
@@ -17,7 +14,7 @@ namespace ClansV2
 	public class Clans : TerrariaPlugin
 	{
 		public override string Name { get { return "Clans"; } }
-		public override string Author { get { return "Professor X"; } }
+		public override string Author { get { return "Ancientgods, maintained by Professor X"; } }
 		public override string Description { get { return ""; } }
 		public override Version Version { get { return new Version(1, 0, 0, 0); } }
 
@@ -75,22 +72,31 @@ namespace ClansV2
 
 		private void OnChat(ServerChatEventArgs args)
 		{
+			// Return if the event has already been handled by another plugin.
 			if (args.Handled)
 				return;
 
+			// Don't handle if the chat format wasn't specified.
 			if (string.IsNullOrWhiteSpace(Config.ChatFormat))
 				return;
 
+			// Get the player who triggered the event.
 			TSPlayer tsplr = TShock.Players[args.Who];
+
+			// Ensure the text isn't a command.
 			if (!args.Text.StartsWith(TShock.Config.CommandSpecifier) && !args.Text.StartsWith(TShock.Config.CommandSilentSpecifier))
 			{
+				// Ensure the player is in a clan, not muted, and has the permission to speak.
 				if (tsplr.GetPlayerInfo() != null && !tsplr.mute && tsplr.HasPermission(TShockAPI.Permissions.canchat))
 				{
 					Clan clan = tsplr.GetPlayerInfo().Clan;
+
+					// Format the chat message and display it.
 					string message = string.Format(Config.ChatFormat, tsplr.Group.Name, tsplr.Group.Prefix, clan.Prefix, tsplr.Name, tsplr.Group.Suffix, args.Text);
 					TSPlayer.All.SendMessage(message, Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : tsplr.Group.ChatColor.ParseColor());
 					TSPlayer.Server.SendMessage(message, Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : tsplr.Group.ChatColor.ParseColor());
 
+					// Handle the event so (hopefully) other plugins don't handle it too.
 					args.Handled = true;
 				}
 			}

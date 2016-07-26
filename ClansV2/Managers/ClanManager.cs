@@ -1,18 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using System.Data;
-using System.Threading.Tasks;
 using TShockAPI;
 using TShockAPI.DB;
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
-using Newtonsoft.Json;
 using ClansV2.Hooks;
-using ClansV2.Extensions;
-using static ClansV2.Clans;
 
 namespace ClansV2.Managers
 {
@@ -52,6 +46,12 @@ namespace ClansV2.Managers
 				new SqlColumn("ChatColor", MySqlDbType.VarChar, 50)));
 		}
 
+		/// <summary>
+		/// Creates a new <see cref="Clan"/> and stores it into the database.
+		/// </summary>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
+		/// <param name="FounderID">The <see cref="Clan"/>'s owner.</param>
+		/// <returns>True or false.</returns>
 		public bool AddClan(Clan clan, int FounderID)
 		{
 			if (GetClanByName(clan.Name) != null)
@@ -73,6 +73,11 @@ namespace ClansV2.Managers
 			}
 		}
 
+		/// <summary>
+		/// Removes a <see cref="Clan"/> from the database.
+		/// </summary>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
+		/// <returns>True or false.</returns>
 		public bool RemoveClan(Clan clan)
 		{
 			try
@@ -94,6 +99,12 @@ namespace ClansV2.Managers
 			}
 		}
 
+		/// <summary>
+		/// Sets the <see cref="Clan"/>'s prefix.
+		/// </summary>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
+		/// <param name="prefix">The prefix.</param>
+		/// <returns>True or false.</returns>
 		public bool SetClanPrefix(Clan clan, string prefix)
 		{
 			try
@@ -109,6 +120,12 @@ namespace ClansV2.Managers
 			}
 		}
 
+		/// <summary>
+		/// Sets the <see cref="Clan"/>'s MotD.
+		/// </summary>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
+		/// <param name="motd">The <see cref="Clan"/>'s MotD.</param>
+		/// <returns>True or false.</returns>
 		public bool SetClanMotd(Clan clan, string motd)
 		{
 			try
@@ -124,6 +141,12 @@ namespace ClansV2.Managers
 			}
 		}
 
+		/// <summary>
+		/// Sets the <see cref="Clan"/>'s ChatColor.
+		/// </summary>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
+		/// <param name="color">The <see cref="Clan"/>'s ChatColor.</param>
+		/// <returns>True or false.</returns>
 		public bool SetClanColor(Clan clan, string color)
 		{
 			try
@@ -139,6 +162,12 @@ namespace ClansV2.Managers
 			}
 		}
 
+		/// <summary>
+		/// Returns a <see cref="Clan"/> object with it's set values.
+		/// </summary>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
+		/// <param name="reader">The QueryResult from which we get the <see cref="Clan"/>'s values."/></param>
+		/// <returns>A <see cref="Clan"/> object.</returns>
 		internal static Clan LoadClanFromResult(Clan clan, QueryResult reader)
 		{
 			clan.Name = reader.Get<string>("Name");
@@ -148,6 +177,11 @@ namespace ClansV2.Managers
 			return clan;
 		}
 
+		/// <summary>
+		/// Attempts to return a <see cref="Clan"/> object matching the <paramref name="name"/>.
+		/// </summary>
+		/// <param name="name">The name to search with.</param>
+		/// <returns>A <see cref="Clan"/> object.</returns>
 		public Clan GetClanByName(string name)
 		{
 			using (QueryResult reader = db.QueryReader("SELECT * FROM Clans WHERE Name=@0;", name))
@@ -161,6 +195,10 @@ namespace ClansV2.Managers
 			return null;
 		}
 
+		/// <summary>
+		/// Returns a list of all <see cref="Clan"/> objects from the database.
+		/// </summary>
+		/// <returns>A list of <see cref="Clan"/> objects.</returns>
 		public List<Clan> GetClans()
 		{
 			List<Clan> clans = new List<Clan>();

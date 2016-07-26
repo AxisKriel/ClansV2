@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ClansV2.Extensions
 {
 	public static class StringExtensions
 	{
+		/// <summary>
+		/// Attempts to parse a color from the string.
+		/// </summary>
+		/// <param name="str">The string to parse. Must be in rrr,ggg,bbb format.</param>
+		/// <returns></returns>
 		public static Color ParseColor(this string str)
 		{
 			byte r, g, b;

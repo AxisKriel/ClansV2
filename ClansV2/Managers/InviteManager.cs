@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Data;
 using TShockAPI;
 using TShockAPI.DB;
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
-using static ClansV2.Clans;
 
 namespace ClansV2.Managers
 {
@@ -48,12 +44,21 @@ namespace ClansV2.Managers
 				new SqlColumn("Clan", MySqlDbType.VarChar, 50)));
 		}
 
+		/// <summary>
+		/// Inserts an invite into the database.
+		/// </summary>
+		/// <param name="userID">The invited. player's UserID.</param>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
 		public void AddInvite(int userID, string clan)
 		{
 			Invites.Add(userID, clan);
 			db.Query("INSERT INTO ClanInvites (UserID, Clan) VALUES (@0, @1);", userID.ToString(), clan);
 		}
 
+		/// <summary>
+		/// Removes na invite from the database.
+		/// </summary>
+		/// <param name="userID">The invited player's UserID.</param>
 		public void RemoveInvite(int userID)
 		{
 			Invites.Remove(userID);

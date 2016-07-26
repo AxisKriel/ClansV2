@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using System.Data;
 using TShockAPI;
@@ -10,7 +8,6 @@ using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using ClansV2.Hooks;
-using static ClansV2.Clans;
 
 namespace ClansV2.Managers
 {
@@ -49,24 +46,44 @@ namespace ClansV2.Managers
 				new SqlColumn("Rank", MySqlDbType.VarChar, 50)));
 		}
 
+		/// <summary>
+		/// Inserts the <paramref name="member"/> into the database.
+		/// </summary>
+		/// <param name="member">The <see cref="ClanMember"/> to store.</param>
 		public void AddMember(ClanMember member)
 		{
 			ClanHooks.OnClanJoined(member.Clan, member);
 			db.Query("INSERT INTO ClanMembers (UserID, Clan, Rank) VALUES (@0, @1, @2);", member.UserID.ToString(), member.Clan.Name, JsonConvert.SerializeObject(member.Rank, Formatting.Indented));
 		}
 
+		/// <summary>
+		/// Removes the <paramref name="member"/> from the database.
+		/// </summary>
+		/// <param name="member">The <see cref="ClanMember"/> object to remove.</param>
+		/// <param name="kick">Whether the <paramref name="member"/> was kicked or not.</param>
 		public void RemoveMember(ClanMember member, bool kick = false)
 		{
 			db.Query("DELETE FROM ClanMembers WHERE UserID=@0;", member.UserID.ToString());
 			ClanHooks.OnClanLeft(member.Clan, member, kick);
 		}
 
+		/// <summary>
+		/// Sets the <paramref name="member"/>'s rank
+		/// </summary>
+		/// <param name="member">The <see cref="ClanMember"/> object to modify.</param>
+		/// <param name="rank">The new rank.</param>
 		public void SetRank(ClanMember member, ClanRank rank)
 		{
 			member.Rank = new Tuple<int, string>((int)rank, rank.ToString());
 			db.Query("UPDATE ClanMembers SET Rank=@0 WHERE UserID=@1;", JsonConvert.SerializeObject(member.Rank, Formatting.Indented), member.UserID.ToString());
 		}
 
+		/// <summary>
+		/// Returns a <see cref="ClanMember"/> object with it's set values.
+		/// </summary>
+		/// <param name="member">The <see cref="Clan"/> object.</param>
+		/// <param name="reader">The QueryResult from which we get the <see cref="ClanMember"/>'s values.</param>
+		/// <returns>A <see cref="ClanMember"/> object.</returns>
 		internal static ClanMember LoadMemberFromResult(ClanMember member, QueryResult reader)
 		{
 			member.UserID = reader.Get<int>("UserID");
@@ -75,6 +92,11 @@ namespace ClansV2.Managers
 			return member;
 		}
 
+		/// <summary>
+		/// Returns a <see cref="ClanMember"/> object matching the <paramref name="ID"/>.
+		/// </summary>
+		/// <param name="ID">The ID to match with.</param>
+		/// <returns>A <see cref="ClanMember"/> object.</returns>
 		public ClanMember GetMemberByID(int ID)
 		{
 			using (QueryResult reader = db.QueryReader("SELECT * FROM ClanMembers WHERE UserID=@0;", ID.ToString()))
@@ -88,6 +110,11 @@ namespace ClansV2.Managers
 			return null;
 		}
 
+		/// <summary>
+		/// Returns a list of <see cref="ClanMember"/> objects matching the <paramref name="clanName"/>.
+		/// </summary>
+		/// <param name="clanName">The clan name to match with.</param>
+		/// <returns>A list of <see cref="ClanMember"/> objects.</returns>
 		public List<ClanMember> GetMembersByClan(string clanName)
 		{
 			List<ClanMember> members = new List<ClanMember>();
