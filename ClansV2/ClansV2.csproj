@@ -61,7 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClanCommands.cs" />
-    <Compile Include="Clans.cs" />
+    <Compile Include="ClansV2.cs" />
     <Compile Include="ConfigFile.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TSPlayerExtensions.cs" />

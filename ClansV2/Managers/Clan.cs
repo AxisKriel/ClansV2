@@ -75,7 +75,7 @@ namespace ClansV2.Managers
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Clan"/> class, without any pre-set values.
+		/// Initializes a new instance of the <see cref="Clan"/> class.
 		/// </summary>
 		public Clan()
 		{

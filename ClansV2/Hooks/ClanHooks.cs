@@ -6,31 +6,47 @@ namespace ClansV2.Hooks
 	public static class ClanHooks
 	{
 		/// <summary>
-		/// Occurs after a <see cref="Clan"/> has been created.
+		/// The clan created delegate.
 		/// </summary>
 		/// <param name="args">The <see cref="ClanCreatedEventArgs"/> object.</param>
 		public delegate void ClanCreatedD(ClanCreatedEventArgs args);
+
+		/// <summary>
+		/// Occurs after a <see cref="Clan"/> has been created.
+		/// </summary>
 		public static event ClanCreatedD ClanCreated;
 
 		/// <summary>
-		/// Occurs aftera <see cref="Clan"/> has been disbanded.
+		/// The clan disbanded delegate.
 		/// </summary>
 		/// <param name="args">The <see cref="ClanDisbandedEventArgs"/> object.</param>
 		public delegate void ClanDisbandedD(ClanDisbandedEventArgs args);
+
+		/// <summary>
+		/// Occurs after a <see cref="Clan"/> has been disbanded.
+		/// </summary>
 		public static event ClanDisbandedD ClanDisbanded;
+
+		/// <summary>
+		/// The clan joined delegate.
+		/// </summary>
+		/// <param name="args">The <see cref="ClanJoinedEventArgs"/> object.</param>
+		public delegate void ClanJoinedD(ClanJoinedEventArgs args);
 
 		/// <summary>
 		/// Occurs when a <see cref="ClanMember"/> joins a <see cref="Clan"/>.
 		/// </summary>
-		/// <param name="args">The <see cref="ClanJoinedEventArgs"/> object.</param>
-		public delegate void ClanJoinedD(ClanJoinedEventArgs args);
 		public static event ClanJoinedD ClanJoined;
+
+		/// <summary>
+		/// The clan left delegate.
+		/// </summary>
+		/// <param name="args">The <see cref="ClanLeftEventArgs"/> object.</param>
+		public delegate void ClanLeftD(ClanLeftEventArgs args);
 
 		/// <summary>
 		/// Occurs when a <see cref="ClanMember"/> leaves a <see cref="Clan"/>.
 		/// </summary>
-		/// <param name="args">The <see cref="ClanLeftEventArgs"/> object.</param>
-		public delegate void ClanLeftD(ClanLeftEventArgs args);
 		public static event ClanLeftD ClanLeft;
 
 		/// <summary>

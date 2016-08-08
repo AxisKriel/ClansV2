@@ -20,7 +20,7 @@ namespace ClansV2.Managers
 		public Tuple<int, string> Rank { get; set; }
 
 		/// <summary>
-		/// Initializes a new <see cref="ClanMember"/> instance, without any pre-set values.
+		/// Initializes a new instance of the <see cref="ClanMember"/> class.
 		/// </summary>
 		public ClanMember()
 		{

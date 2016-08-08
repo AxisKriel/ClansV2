@@ -15,7 +15,7 @@ namespace ClansV2.Extensions
 			if (tsPlayer.User == null)
 				return null;
 
-			return Clans.MembersDb.GetMemberByID(tsPlayer.User.ID);
+			return ClansV2.Instance.Members.GetMemberByID(tsPlayer.User.ID);
 		}
 	}
 }

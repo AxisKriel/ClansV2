@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Data;
+using System.Threading.Tasks;
 using TShockAPI;
 using TShockAPI.DB;
 using Mono.Data.Sqlite;
@@ -57,6 +58,19 @@ namespace ClansV2.Managers
 		}
 
 		/// <summary>
+		/// Inserts the <paramref name="member"/> into the database as an asynchronous operation.
+		/// </summary>
+		/// <param name="member">The <see cref="ClanMember"/> to store.</param>
+		public Task AddMemberAsync(ClanMember member)
+		{
+			return Task.Run(() => 
+			{
+				ClanHooks.OnClanJoined(member.Clan, member);
+				db.Query("INSERT INTO ClanMembers (UserID, Clan, Rank) VALUES (@0, @1, @2);", member.UserID.ToString(), member.Clan.Name, JsonConvert.SerializeObject(member.Rank, Formatting.Indented));
+			});
+		}
+
+		/// <summary>
 		/// Removes the <paramref name="member"/> from the database.
 		/// </summary>
 		/// <param name="member">The <see cref="ClanMember"/> object to remove.</param>
@@ -68,7 +82,21 @@ namespace ClansV2.Managers
 		}
 
 		/// <summary>
-		/// Sets the <paramref name="member"/>'s rank
+		/// Removes the <paramref name="member"/> from the database as an asynchronous operation.
+		/// </summary>
+		/// <param name="member">The <see cref="ClanMember"/> object to remove.</param>
+		/// <param name="kick">Whether the <paramref name="member"/> was kicked or not.</param>
+		public Task RemoveMemberAsync(ClanMember member, bool kick = false)
+		{
+			return Task.Run(() => 
+			{
+				db.Query("DELETE FROM ClanMembers WHERE UserID=@0;", member.UserID.ToString());
+				ClanHooks.OnClanLeft(member.Clan, member, kick);
+			});
+		}
+
+		/// <summary>
+		/// Sets the <paramref name="member"/>'s rank.
 		/// </summary>
 		/// <param name="member">The <see cref="ClanMember"/> object to modify.</param>
 		/// <param name="rank">The new rank.</param>
@@ -76,6 +104,20 @@ namespace ClansV2.Managers
 		{
 			member.Rank = new Tuple<int, string>((int)rank, rank.ToString());
 			db.Query("UPDATE ClanMembers SET Rank=@0 WHERE UserID=@1;", JsonConvert.SerializeObject(member.Rank, Formatting.Indented), member.UserID.ToString());
+		}
+
+		/// <summary>
+		/// Sets the <paramref name="member"/>'s rank as an asynchronous operation.
+		/// </summary>
+		/// <param name="member">The <see cref="ClanMember"/> object to modify.</param>
+		/// <param name="rank">The new rank.</param>
+		public Task SetRankAsync(ClanMember member, ClanRank rank)
+		{
+			return Task.Run(() =>
+			{
+				member.Rank = new Tuple<int, string>((int)rank, rank.ToString());
+				db.Query("UPDATE ClanMembers SET Rank=@0 WHERE UserID=@1;", JsonConvert.SerializeObject(member.Rank, Formatting.Indented), member.UserID.ToString());
+			});
 		}
 
 		/// <summary>
@@ -87,7 +129,7 @@ namespace ClansV2.Managers
 		internal static ClanMember LoadMemberFromResult(ClanMember member, QueryResult reader)
 		{
 			member.UserID = reader.Get<int>("UserID");
-			member.Clan = Clans.ClansDb.GetClanByName(reader.Get<string>("Clan"));
+			member.Clan = ClansV2.Instance.Clans.GetClanByName(reader.Get<string>("Clan"));
 			member.Rank = JsonConvert.DeserializeObject<Tuple<int, string>>(reader.Get<string>("Rank"));
 			return member;
 		}

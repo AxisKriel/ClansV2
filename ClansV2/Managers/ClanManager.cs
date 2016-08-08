@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Data;
+using System.Threading.Tasks;
 using TShockAPI;
 using TShockAPI.DB;
 using Mono.Data.Sqlite;
@@ -50,9 +51,9 @@ namespace ClansV2.Managers
 		/// Creates a new <see cref="Clan"/> and stores it into the database.
 		/// </summary>
 		/// <param name="clan">The <see cref="Clan"/> object.</param>
-		/// <param name="FounderID">The <see cref="Clan"/>'s owner.</param>
+		/// <param name="founderID">The <see cref="Clan"/>'s owner.</param>
 		/// <returns>True or false.</returns>
-		public bool AddClan(Clan clan, int FounderID)
+		public bool AddClan(Clan clan, int founderID)
 		{
 			if (GetClanByName(clan.Name) != null)
 			{
@@ -63,7 +64,7 @@ namespace ClansV2.Managers
 			{
 				ClanHooks.OnClanCreated(clan);
 				db.Query("INSERT INTO Clans (Name, Prefix, MotD, ChatColor) VALUES (@0, @1, @2, @3);", clan.Name, clan.Prefix, clan.MotD, clan.ChatColor);
-				Clans.MembersDb.AddMember(new ClanMember() { UserID = FounderID, Clan = clan, Rank = new Tuple<int, string>((int)ClanRank.Founder, ClanRank.Founder.ToString()) });
+				ClansV2.Instance.Members.AddMember(new ClanMember() { UserID = founderID, Clan = clan, Rank = new Tuple<int, string>((int)ClanRank.Founder, ClanRank.Founder.ToString()) });
 				return true;
 			}
 			catch (Exception ex)
@@ -71,6 +72,36 @@ namespace ClansV2.Managers
 				TShock.Log.Error(ex.ToString());
 				return false;
 			}
+		}
+
+		/// <summary>
+		/// Creates a new <see cref="Clan"/> and stores it into the database as an asynchronous operation.
+		/// </summary>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
+		/// <param name="founderID">The <see cref="Clan"/>'s owner.</param>
+		/// <returns>True or false.</returns>
+		public Task<bool> AddClanAsync(Clan clan, int founderID)
+		{
+			return Task.Run(() => 
+			{
+				if (GetClanByName(clan.Name) != null)
+				{
+					return false;
+				}
+
+				try
+				{
+					ClanHooks.OnClanCreated(clan);
+					db.Query("INSERT INTO Clans (Name, Prefix, MotD, ChatColor) VALUES (@0, @1, @2, @3);", clan.Name, clan.Prefix, clan.MotD, clan.ChatColor);
+					ClansV2.Instance.Members.AddMember(new ClanMember() { UserID = founderID, Clan = clan, Rank = new Tuple<int, string>((int)ClanRank.Founder, ClanRank.Founder.ToString()) });
+					return true;
+				}
+				catch (Exception ex)
+				{
+					TShock.Log.Error(ex.ToString());
+					return false;
+				}
+			});
 		}
 
 		/// <summary>
@@ -83,9 +114,9 @@ namespace ClansV2.Managers
 			try
 			{
 				ClanHooks.OnClanDisbanded(clan);
-				foreach (ClanMember member in Clans.MembersDb.GetMembersByClan(clan.Name))
+				foreach (ClanMember member in ClansV2.Instance.Members.GetMembersByClan(clan.Name))
 				{
-					Clans.MembersDb.RemoveMember(member);
+					ClansV2.Instance.Members.RemoveMember(member);
 				}
 
 				db.Query("DELETE FROM Clans WHERE Name=@0;", clan.Name);
@@ -97,6 +128,35 @@ namespace ClansV2.Managers
 				TShock.Log.Error(ex.ToString());
 				return false;
 			}
+		}
+
+		/// <summary>
+		/// Removes a <see cref="Clan"/> from the database as an asynchronous operation.
+		/// </summary>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
+		/// <returns>True or false.</returns>
+		public Task<bool> RemoveClanAsync(Clan clan)
+		{
+			return Task.Run(() => 
+			{
+				try
+				{
+					ClanHooks.OnClanDisbanded(clan);
+					foreach (ClanMember member in ClansV2.Instance.Members.GetMembersByClan(clan.Name))
+					{
+						ClansV2.Instance.Members.RemoveMember(member);
+					}
+
+					db.Query("DELETE FROM Clans WHERE Name=@0;", clan.Name);
+
+					return true;
+				}
+				catch (Exception ex)
+				{
+					TShock.Log.Error(ex.ToString());
+					return false;
+				}
+			});
 		}
 
 		/// <summary>
@@ -121,10 +181,34 @@ namespace ClansV2.Managers
 		}
 
 		/// <summary>
+		/// Sets the <see cref="Clan"/>'s prefix as an asynchronous operation.
+		/// </summary>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
+		/// <param name="prefix">The prefix.</param>
+		/// <returns>True or false.</returns>
+		public Task<bool> SetClanPrefixAsync(Clan clan, string prefix)
+		{
+			return Task.Run(() => 
+			{
+				try
+				{
+					clan.Prefix = prefix;
+					db.Query("UPDATE Clans SET Prefix=@0 WHERE Name=@1;", prefix, clan.Name);
+					return true;
+				}
+				catch (Exception ex)
+				{
+					TShock.Log.Error(ex.ToString());
+					return false;
+				}
+			});
+		}
+
+		/// <summary>
 		/// Sets the <see cref="Clan"/>'s MotD.
 		/// </summary>
 		/// <param name="clan">The <see cref="Clan"/> object.</param>
-		/// <param name="motd">The <see cref="Clan"/>'s MotD.</param>
+		/// <param name="motd">The MotD.</param>
 		/// <returns>True or false.</returns>
 		public bool SetClanMotd(Clan clan, string motd)
 		{
@@ -142,10 +226,35 @@ namespace ClansV2.Managers
 		}
 
 		/// <summary>
+		/// Sets the <see cref="Clan"/>'s MotD as an asynchronous operation.
+		/// </summary>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
+		/// <param name="motd">The MotD.</param>
+		/// <returns>True or false.</returns>
+		public Task<bool> SetClanMotdAsync(Clan clan, string motd)
+		{
+			return Task.Run(() =>
+			{
+				try
+				{
+					clan.MotD = motd;
+					db.Query("UPDATE Clans SET MotD=@0 WHERE Name=@1;", motd, clan.Name);
+					return true;
+				}
+				catch (Exception ex)
+				{
+					TShock.Log.Error(ex.ToString());
+					return false;
+				}
+
+			});
+		}
+
+		/// <summary>
 		/// Sets the <see cref="Clan"/>'s ChatColor.
 		/// </summary>
 		/// <param name="clan">The <see cref="Clan"/> object.</param>
-		/// <param name="color">The <see cref="Clan"/>'s ChatColor.</param>
+		/// <param name="color">The ChatColor.</param>
 		/// <returns>True or false.</returns>
 		public bool SetClanColor(Clan clan, string color)
 		{
@@ -160,6 +269,30 @@ namespace ClansV2.Managers
 				TShock.Log.Error(ex.ToString());
 				return false;
 			}
+		}
+
+		/// <summary>
+		/// Sets the <see cref="Clan"/>'s ChatColor as an asynchronous operation.
+		/// </summary>
+		/// <param name="clan">The <see cref="Clan"/> object.</param>
+		/// <param name="color">The ChatColor.</param>
+		/// <returns>True or false.</returns>
+		public Task<bool> SetClanColorAsync(Clan clan, string color)
+		{
+			return Task.Run(() => 
+			{
+				try
+				{
+					clan.ChatColor = color;
+					db.Query("UPDATE Clans SET ChatColor=@0 WHERE Name=@1;", color, clan.Name);
+					return true;
+				}
+				catch (Exception ex)
+				{
+					TShock.Log.Error(ex.ToString());
+					return false;
+				}
+			});
 		}
 
 		/// <summary>
