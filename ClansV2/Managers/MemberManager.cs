@@ -14,6 +14,8 @@ namespace ClansV2.Managers
 {
 	public class MemberManager
 	{
+		public List<ClanMember> MemberData = new List<ClanMember>();
+
 		private static IDbConnection db;
 		public void ConnectDB()
 		{
@@ -45,6 +47,14 @@ namespace ClansV2.Managers
 				new SqlColumn("UserID", MySqlDbType.Int32),
 				new SqlColumn("Clan", MySqlDbType.VarChar, 50),
 				new SqlColumn("Rank", MySqlDbType.VarChar, 50)));
+
+			Task.Run(() => LoadMembers());
+		}
+
+		public async Task LoadMembers()
+		{
+			List<ClanMember> members = await GetMembersAsync();
+			MemberData = members;
 		}
 
 		/// <summary>
@@ -53,18 +63,18 @@ namespace ClansV2.Managers
 		/// <param name="member">The <see cref="ClanMember"/> to store.</param>
 		public void AddMember(ClanMember member)
 		{
-			ClanHooks.OnClanJoined(member.Clan, member);
-			db.Query("INSERT INTO ClanMembers (UserID, Clan, Rank) VALUES (@0, @1, @2);", member.UserID.ToString(), member.Clan.Name, JsonConvert.SerializeObject(member.Rank, Formatting.Indented));
+			Task.Run(() => AddMemberAsync(member));
 		}
 
 		/// <summary>
 		/// Inserts the <paramref name="member"/> into the database as an asynchronous operation.
 		/// </summary>
 		/// <param name="member">The <see cref="ClanMember"/> to store.</param>
-		public Task AddMemberAsync(ClanMember member)
+		public async Task AddMemberAsync(ClanMember member)
 		{
-			return Task.Run(() => 
+			await Task.Run(() => 
 			{
+				MemberData.Add(member);
 				ClanHooks.OnClanJoined(member.Clan, member);
 				db.Query("INSERT INTO ClanMembers (UserID, Clan, Rank) VALUES (@0, @1, @2);", member.UserID.ToString(), member.Clan.Name, JsonConvert.SerializeObject(member.Rank, Formatting.Indented));
 			});
@@ -77,8 +87,7 @@ namespace ClansV2.Managers
 		/// <param name="kick">Whether the <paramref name="member"/> was kicked or not.</param>
 		public void RemoveMember(ClanMember member, bool kick = false)
 		{
-			db.Query("DELETE FROM ClanMembers WHERE UserID=@0;", member.UserID.ToString());
-			ClanHooks.OnClanLeft(member.Clan, member, kick);
+			Task.Run(() => RemoveMemberAsync(member, kick));
 		}
 
 		/// <summary>
@@ -86,10 +95,11 @@ namespace ClansV2.Managers
 		/// </summary>
 		/// <param name="member">The <see cref="ClanMember"/> object to remove.</param>
 		/// <param name="kick">Whether the <paramref name="member"/> was kicked or not.</param>
-		public Task RemoveMemberAsync(ClanMember member, bool kick = false)
+		public async Task RemoveMemberAsync(ClanMember member, bool kick = false)
 		{
-			return Task.Run(() => 
+			await Task.Run(() => 
 			{
+				MemberData.Remove(member);
 				db.Query("DELETE FROM ClanMembers WHERE UserID=@0;", member.UserID.ToString());
 				ClanHooks.OnClanLeft(member.Clan, member, kick);
 			});
@@ -102,8 +112,7 @@ namespace ClansV2.Managers
 		/// <param name="rank">The new rank.</param>
 		public void SetRank(ClanMember member, ClanRank rank)
 		{
-			member.Rank = new Tuple<int, string>((int)rank, rank.ToString());
-			db.Query("UPDATE ClanMembers SET Rank=@0 WHERE UserID=@1;", JsonConvert.SerializeObject(member.Rank, Formatting.Indented), member.UserID.ToString());
+			Task.Run(() => SetRankAsync(member, rank));
 		}
 
 		/// <summary>
@@ -111,12 +120,14 @@ namespace ClansV2.Managers
 		/// </summary>
 		/// <param name="member">The <see cref="ClanMember"/> object to modify.</param>
 		/// <param name="rank">The new rank.</param>
-		public Task SetRankAsync(ClanMember member, ClanRank rank)
+		public async Task SetRankAsync(ClanMember member, ClanRank rank)
 		{
-			return Task.Run(() =>
+			await Task.Run(() =>
 			{
 				member.Rank = new Tuple<int, string>((int)rank, rank.ToString());
 				db.Query("UPDATE ClanMembers SET Rank=@0 WHERE UserID=@1;", JsonConvert.SerializeObject(member.Rank, Formatting.Indented), member.UserID.ToString());
+				MemberData.RemoveAll(m => m.UserID == member.UserID);
+				MemberData.Add(member);
 			});
 		}
 
@@ -141,15 +152,17 @@ namespace ClansV2.Managers
 		/// <returns>A <see cref="ClanMember"/> object.</returns>
 		public ClanMember GetMemberByID(int ID)
 		{
-			using (QueryResult reader = db.QueryReader("SELECT * FROM ClanMembers WHERE UserID=@0;", ID.ToString()))
-			{
-				if (reader.Read())
-				{
-					return LoadMemberFromResult(new ClanMember(), reader);
-				}
-			}
+			//using (QueryResult reader = db.QueryReader("SELECT * FROM ClanMembers WHERE UserID=@0;", ID.ToString()))
+			//{
+			//	if (reader.Read())
+			//	{
+			//		return LoadMemberFromResult(new ClanMember(), reader);
+			//	}
+			//}
 
-			return null;
+			//return null;
+
+			return MemberData.Find(m => m.UserID == ID);
 		}
 
 		/// <summary>
@@ -159,16 +172,35 @@ namespace ClansV2.Managers
 		/// <returns>A list of <see cref="ClanMember"/> objects.</returns>
 		public List<ClanMember> GetMembersByClan(string clanName)
 		{
-			List<ClanMember> members = new List<ClanMember>();
-			using (QueryResult reader = db.QueryReader("SELECT * FROM ClanMembers WHERE Clan=@0;", clanName))
-			{
-				while (reader.Read())
-				{
-					members.Add(LoadMemberFromResult(new ClanMember(), reader));
-				}
-			}
+			//List<ClanMember> members = new List<ClanMember>();
+			//using (QueryResult reader = db.QueryReader("SELECT * FROM ClanMembers WHERE Clan=@0;", clanName))
+			//{
+			//	while (reader.Read())
+			//	{
+			//		members.Add(LoadMemberFromResult(new ClanMember(), reader));
+			//	}
+			//}
 
-			return members;
+			//return members;
+
+			return MemberData.FindAll(m => m.Clan.Name == clanName);
+		}
+
+		public Task<List<ClanMember>> GetMembersAsync()
+		{
+			return Task.Run(() => 
+			{
+				var members = new List<ClanMember>();
+				using (QueryResult reader = db.QueryReader("SELECT * FROM ClanMembers"))
+				{
+					while (reader.Read())
+					{
+						members.Add(LoadMemberFromResult(new ClanMember(), reader));
+					}
+				}
+
+				return members;
+			});
 		}
 	}
 }

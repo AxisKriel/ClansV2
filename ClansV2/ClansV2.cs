@@ -114,21 +114,37 @@ namespace ClansV2
 		#endregion
 
 		#region Clan Hooks
+		/// <summary>
+		/// Internal hook, fired when a clan has been created.
+		/// </summary>
+		/// <param name="args">The <see cref="ClanCreatedEventArgs"/> object.</param>
 		private void OnClanCreated(ClanCreatedEventArgs args)
 		{
 			TSPlayer.All.SendInfoMessage("Clan '{0}' has been established!", args.Clan.Name);
 		}
 
+		/// <summary>
+		/// Internal hook, fired when a clan has been disbanded.
+		/// </summary>
+		/// <param name="args">The <see cref="ClanDisbandedEventArgs"/> object.</param>
 		private void OnClanDisbanded(ClanDisbandedEventArgs args)
 		{
 			TSPlayer.All.SendInfoMessage("Clan '{0}' has been disbanded!", args.Clan.Name);
 		}
 
+		/// <summary>
+		/// Internal hook, fired when a player joins a clan.
+		/// </summary>
+		/// <param name="args">The <see cref="ClanJoinedEventArgs"/> object.</param>
 		private void OnClanJoined(ClanJoinedEventArgs args)
 		{
 			args.Clan.SendClanMessage("(Clan) {0} has joined the clan!", TShock.Users.GetUserByID(args.Player.UserID).Name);
 		}
 
+		/// <summary>
+		/// Internal hook, fired when a player leaves a clan.
+		/// </summary>
+		/// <param name="args">The <see cref="ClanLeftEventArgs"/> object.</param>
 		private void OnClanLeft(ClanLeftEventArgs args)
 		{
 			if (args.Kick)
@@ -142,6 +158,9 @@ namespace ClansV2
 		#endregion
 
 		#region Load Config
+		/// <summary>
+		/// Reloads the configuration file.
+		/// </summary>
 		private void LoadConfig()
 		{
 			string path = Path.Combine(TShock.SavePath, "Clans.json");

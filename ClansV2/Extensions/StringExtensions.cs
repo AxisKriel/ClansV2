@@ -8,7 +8,7 @@ namespace ClansV2.Extensions
 		/// Attempts to parse a color from the string.
 		/// </summary>
 		/// <param name="str">The string to parse. Must be in rrr,ggg,bbb format.</param>
-		/// <returns></returns>
+		/// <returns>A <see cref="Color"/> object.</returns>
 		public static Color ParseColor(this string str)
 		{
 			byte r, g, b;

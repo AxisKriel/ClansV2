@@ -661,7 +661,7 @@ namespace ClansV2
 			if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNum))
 				return;
 
-			var clanList = from c in ClansV2.Instance.Clans.GetClans() orderby c.Name select c.Name;
+			var clanList = from c in ClansV2.Instance.Clans.ClanData orderby c.Name select c.Name;
 			PaginationTools.SendPage(args.Player, pageNum, PaginationTools.BuildLinesFromTerms(clanList), new PaginationTools.Settings()
 			{
 				HeaderFormat = "Clan List ({0}/{1})",

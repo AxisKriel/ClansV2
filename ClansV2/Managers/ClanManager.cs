@@ -13,6 +13,8 @@ namespace ClansV2.Managers
 {
 	public class ClanManager
 	{
+		public List<Clan> ClanData = new List<Clan>();
+
 		private static IDbConnection db;
 		public void ConnectDB()
 		{
@@ -45,6 +47,18 @@ namespace ClansV2.Managers
 				new SqlColumn("Prefix", MySqlDbType.VarChar, 50),
 				new SqlColumn("MotD", MySqlDbType.VarChar, 50),
 				new SqlColumn("ChatColor", MySqlDbType.VarChar, 50)));
+
+			Task.Run(() => LoadClans());
+		}
+
+		/// <summary>
+		/// Reloads Clans memory.
+		/// </summary>
+		/// <returns>A Task.</returns>
+		public async Task LoadClans()
+		{
+			List<Clan> clanList = await GetClansAsync();
+			ClanData = clanList;
 		}
 
 		/// <summary>
@@ -55,16 +69,9 @@ namespace ClansV2.Managers
 		/// <returns>True or false.</returns>
 		public bool AddClan(Clan clan, int founderID)
 		{
-			if (GetClanByName(clan.Name) != null)
-			{
-				return false;
-			}
-
 			try
 			{
-				ClanHooks.OnClanCreated(clan);
-				db.Query("INSERT INTO Clans (Name, Prefix, MotD, ChatColor) VALUES (@0, @1, @2, @3);", clan.Name, clan.Prefix, clan.MotD, clan.ChatColor);
-				ClansV2.Instance.Members.AddMember(new ClanMember() { UserID = founderID, Clan = clan, Rank = new Tuple<int, string>((int)ClanRank.Founder, ClanRank.Founder.ToString()) });
+				Task.Run(() => AddClanAsync(clan, founderID));
 				return true;
 			}
 			catch (Exception ex)
@@ -80,27 +87,20 @@ namespace ClansV2.Managers
 		/// <param name="clan">The <see cref="Clan"/> object.</param>
 		/// <param name="founderID">The <see cref="Clan"/>'s owner.</param>
 		/// <returns>True or false.</returns>
-		public Task<bool> AddClanAsync(Clan clan, int founderID)
+		public async Task<bool> AddClanAsync(Clan clan, int founderID)
 		{
-			return Task.Run(() => 
+			return await Task.Run(() =>
 			{
 				if (GetClanByName(clan.Name) != null)
 				{
 					return false;
 				}
 
-				try
-				{
-					ClanHooks.OnClanCreated(clan);
-					db.Query("INSERT INTO Clans (Name, Prefix, MotD, ChatColor) VALUES (@0, @1, @2, @3);", clan.Name, clan.Prefix, clan.MotD, clan.ChatColor);
-					ClansV2.Instance.Members.AddMember(new ClanMember() { UserID = founderID, Clan = clan, Rank = new Tuple<int, string>((int)ClanRank.Founder, ClanRank.Founder.ToString()) });
-					return true;
-				}
-				catch (Exception ex)
-				{
-					TShock.Log.Error(ex.ToString());
-					return false;
-				}
+				ClanHooks.OnClanCreated(clan);
+				ClanData.Add(clan);
+				db.Query("INSERT INTO Clans (Name, Prefix, MotD, ChatColor) VALUES (@0, @1, @2, @3);", clan.Name, clan.Prefix, clan.MotD, clan.ChatColor);
+				ClansV2.Instance.Members.AddMember(new ClanMember() { UserID = founderID, Clan = clan, Rank = new Tuple<int, string>((int)ClanRank.Founder, ClanRank.Founder.ToString()) });
+				return true;
 			});
 		}
 
@@ -113,14 +113,7 @@ namespace ClansV2.Managers
 		{
 			try
 			{
-				ClanHooks.OnClanDisbanded(clan);
-				foreach (ClanMember member in ClansV2.Instance.Members.GetMembersByClan(clan.Name))
-				{
-					ClansV2.Instance.Members.RemoveMember(member);
-				}
-
-				db.Query("DELETE FROM Clans WHERE Name=@0;", clan.Name);
-
+				Task.Run(() => RemoveClanAsync(clan));
 				return true;
 			}
 			catch (Exception ex)
@@ -135,27 +128,19 @@ namespace ClansV2.Managers
 		/// </summary>
 		/// <param name="clan">The <see cref="Clan"/> object.</param>
 		/// <returns>True or false.</returns>
-		public Task<bool> RemoveClanAsync(Clan clan)
+		public async Task<bool> RemoveClanAsync(Clan clan)
 		{
-			return Task.Run(() => 
+			return await Task.Run(() =>
 			{
-				try
+				ClanHooks.OnClanDisbanded(clan);
+				foreach (ClanMember member in ClansV2.Instance.Members.GetMembersByClan(clan.Name))
 				{
-					ClanHooks.OnClanDisbanded(clan);
-					foreach (ClanMember member in ClansV2.Instance.Members.GetMembersByClan(clan.Name))
-					{
-						ClansV2.Instance.Members.RemoveMember(member);
-					}
-
-					db.Query("DELETE FROM Clans WHERE Name=@0;", clan.Name);
-
-					return true;
+					ClansV2.Instance.Members.RemoveMember(member);
 				}
-				catch (Exception ex)
-				{
-					TShock.Log.Error(ex.ToString());
-					return false;
-				}
+
+				ClanData.Remove(clan);
+				db.Query("DELETE FROM Clans WHERE Name=@0;", clan.Name);
+				return true;
 			});
 		}
 
@@ -169,8 +154,7 @@ namespace ClansV2.Managers
 		{
 			try
 			{
-				clan.Prefix = prefix;
-				db.Query("UPDATE Clans SET Prefix=@0 WHERE Name=@1;", prefix, clan.Name);
+				Task.Run(() => SetClanPrefixAsync(clan, prefix));
 				return true;
 			}
 			catch (Exception ex)
@@ -186,21 +170,13 @@ namespace ClansV2.Managers
 		/// <param name="clan">The <see cref="Clan"/> object.</param>
 		/// <param name="prefix">The prefix.</param>
 		/// <returns>True or false.</returns>
-		public Task<bool> SetClanPrefixAsync(Clan clan, string prefix)
+		public async Task<bool> SetClanPrefixAsync(Clan clan, string prefix)
 		{
-			return Task.Run(() => 
+			return await Task.Run(() =>
 			{
-				try
-				{
-					clan.Prefix = prefix;
-					db.Query("UPDATE Clans SET Prefix=@0 WHERE Name=@1;", prefix, clan.Name);
-					return true;
-				}
-				catch (Exception ex)
-				{
-					TShock.Log.Error(ex.ToString());
-					return false;
-				}
+				clan.Prefix = prefix;
+				db.Query("UPDATE Clans SET Prefix=@0 WHERE Name=@1;", prefix, clan.Name);
+				return true;
 			});
 		}
 
@@ -214,8 +190,7 @@ namespace ClansV2.Managers
 		{
 			try
 			{
-				clan.MotD = motd;
-				db.Query("UPDATE Clans SET MotD=@0 WHERE Name=@1;", motd, clan.Name);
+				Task.Run(() => SetClanMotdAsync(clan, motd));
 				return true;
 			}
 			catch (Exception ex)
@@ -231,22 +206,13 @@ namespace ClansV2.Managers
 		/// <param name="clan">The <see cref="Clan"/> object.</param>
 		/// <param name="motd">The MotD.</param>
 		/// <returns>True or false.</returns>
-		public Task<bool> SetClanMotdAsync(Clan clan, string motd)
+		public async Task<bool> SetClanMotdAsync(Clan clan, string motd)
 		{
-			return Task.Run(() =>
+			return await Task.Run(() =>
 			{
-				try
-				{
-					clan.MotD = motd;
-					db.Query("UPDATE Clans SET MotD=@0 WHERE Name=@1;", motd, clan.Name);
-					return true;
-				}
-				catch (Exception ex)
-				{
-					TShock.Log.Error(ex.ToString());
-					return false;
-				}
-
+				clan.MotD = motd;
+				db.Query("UPDATE Clans SET MotD=@0 WHERE Name=@1;", motd, clan.Name);
+				return true;
 			});
 		}
 
@@ -260,8 +226,7 @@ namespace ClansV2.Managers
 		{
 			try
 			{
-				clan.ChatColor = color;
-				db.Query("UPDATE Clans SET ChatColor=@0 WHERE Name=@1;", color, clan.Name);
+				Task.Run(() => SetClanColorAsync(clan, color));
 				return true;
 			}
 			catch (Exception ex)
@@ -277,21 +242,13 @@ namespace ClansV2.Managers
 		/// <param name="clan">The <see cref="Clan"/> object.</param>
 		/// <param name="color">The ChatColor.</param>
 		/// <returns>True or false.</returns>
-		public Task<bool> SetClanColorAsync(Clan clan, string color)
+		public async Task<bool> SetClanColorAsync(Clan clan, string color)
 		{
-			return Task.Run(() => 
+			return await Task.Run(() =>
 			{
-				try
-				{
-					clan.ChatColor = color;
-					db.Query("UPDATE Clans SET ChatColor=@0 WHERE Name=@1;", color, clan.Name);
-					return true;
-				}
-				catch (Exception ex)
-				{
-					TShock.Log.Error(ex.ToString());
-					return false;
-				}
+				clan.ChatColor = color;
+				db.Query("UPDATE Clans SET ChatColor=@0 WHERE Name=@1;", color, clan.Name);
+				return true;
 			});
 		}
 
@@ -299,7 +256,7 @@ namespace ClansV2.Managers
 		/// Returns a <see cref="Clan"/> object with it's set values.
 		/// </summary>
 		/// <param name="clan">The <see cref="Clan"/> object.</param>
-		/// <param name="reader">The QueryResult from which we get the <see cref="Clan"/>'s values."/></param>
+		/// <param name="reader">The QueryResult from which we get the <see cref="Clan"/>'s values.</param>
 		/// <returns>A <see cref="Clan"/> object.</returns>
 		internal static Clan LoadClanFromResult(Clan clan, QueryResult reader)
 		{
@@ -317,21 +274,24 @@ namespace ClansV2.Managers
 		/// <returns>A <see cref="Clan"/> object.</returns>
 		public Clan GetClanByName(string name)
 		{
-			using (QueryResult reader = db.QueryReader("SELECT * FROM Clans WHERE Name=@0;", name))
-			{
-				if (reader.Read())
-				{
-					return LoadClanFromResult(new Clan(), reader);
-				}
-			}
+			//using (QueryResult reader = db.QueryReader("SELECT * FROM Clans WHERE Name=@0;", name))
+			//{
+			//	if (reader.Read())
+			//	{
+			//		return LoadClanFromResult(new Clan(), reader);
+			//	}
+			//}
 
-			return null;
+			//return null;
+
+			return ClanData.Find(c => c.Name == name);
 		}
 
 		/// <summary>
 		/// Returns a list of all <see cref="Clan"/> objects from the database.
 		/// </summary>
 		/// <returns>A list of <see cref="Clan"/> objects.</returns>
+		[Obsolete("Use ClanManager.ClanData instead.")]
 		public List<Clan> GetClans()
 		{
 			List<Clan> clans = new List<Clan>();
@@ -344,6 +304,27 @@ namespace ClansV2.Managers
 			}
 
 			return clans;
+		}
+
+		/// <summary>
+		/// Represents an asynchronous operation which returns a list of <see cref="Clan"/>s from the database.
+		/// </summary>
+		/// <returns>A Task.</returns>
+		public Task<List<Clan>> GetClansAsync()
+		{
+			return Task.Run(() => 
+			{
+				var clans = new List<Clan>();
+				using (QueryResult reader = db.QueryReader("SELECT * FROM Clans"))
+				{
+					while (reader.Read())
+					{
+						clans.Add(LoadClanFromResult(new Clan(), reader));
+					}
+				}
+
+				return clans;
+			});
 		}
 	}
 }
