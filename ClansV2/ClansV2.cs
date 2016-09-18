@@ -7,6 +7,7 @@ using TShockAPI.Hooks;
 using ClansV2.Hooks;
 using ClansV2.Managers;
 using ClansV2.Extensions;
+using DiscordBridge.Chat;
 
 namespace ClansV2
 {
@@ -33,13 +34,14 @@ namespace ClansV2
 		public override void Initialize()
 		{
 			ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
-			ServerApi.Hooks.ServerChat.Register(this, OnChat);
 			GeneralHooks.ReloadEvent += OnReload;
 
 			ClanHooks.ClanCreated += OnClanCreated;
 			ClanHooks.ClanDisbanded += OnClanDisbanded;
 			ClanHooks.ClanJoined += OnClanJoined;
 			ClanHooks.ClanLeft += OnClanLeft;
+
+			ChatHandler.PlayerChatting += OnChat;
 		}
 
 		protected override void Dispose(bool disposing)
@@ -47,13 +49,14 @@ namespace ClansV2
 			if (disposing)
 			{
 				ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
-				ServerApi.Hooks.ServerChat.Deregister(this, OnChat);
 				GeneralHooks.ReloadEvent -= OnReload;
 
 				ClanHooks.ClanCreated -= OnClanCreated;
 				ClanHooks.ClanDisbanded -= OnClanDisbanded;
 				ClanHooks.ClanJoined -= OnClanJoined;
 				ClanHooks.ClanLeft -= OnClanLeft;
+
+				ChatHandler.PlayerChatting -= OnChat;
 			}
 			base.Dispose(disposing);
 		}
@@ -71,34 +74,38 @@ namespace ClansV2
 			Commands.ChatCommands.Add(new Command(Permissions.ClanChat, ClanCommands.MainCommand, "clan"));
 		}
 
-		private void OnChat(ServerChatEventArgs args)
+		private void OnChat(object sender, PlayerChattingEventArgs args)
 		{
-			// Return if the event has already been handled by another plugin.
-			if (args.Handled)
-				return;
-
 			// Don't handle if the chat format wasn't specified.
-			if (string.IsNullOrWhiteSpace(Config.ChatFormat))
+			if (String.IsNullOrWhiteSpace(Config.PrefixFormat) && String.IsNullOrWhiteSpace(Config.SuffixFormat))
 				return;
 
-			// Get the player who triggered the event.
-			TSPlayer tsplr = TShock.Players[args.Who];
-
-			// Ensure the text isn't a command.
-			if (!args.Text.StartsWith(TShock.Config.CommandSpecifier) && !args.Text.StartsWith(TShock.Config.CommandSilentSpecifier))
+			// Ensure the player is in a clan
+			if (args.Player.GetPlayerInfo() != null)
 			{
-				// Ensure the player is in a clan, not muted, and has the permission to speak.
-				if (tsplr.GetPlayerInfo() != null && !tsplr.mute && tsplr.HasPermission(TShockAPI.Permissions.canchat))
+				Clan clan = args.Player.GetPlayerInfo().Clan;
+
+				/* Since ChatHandler only supports one universal chat format with a preset of parameters, we're giving the
+				 * user the ability to decide where they want to include the clan prefix, and how to format it alongside
+				 * the default group prefix/suffix. This is as flexible as I was able to make it; deprecates ChatFormat.
+				 */
+
+				if (!String.IsNullOrWhiteSpace(Config.PrefixFormat))
 				{
-					Clan clan = tsplr.GetPlayerInfo().Clan;
+					// Remove tshock defaults
+					args.Message.Prefixes.RemoveAll(p => p.Text == args.Player.Group.Prefix);
 
-					// Format the chat message and display it.
-					string message = string.Format(Config.ChatFormat, tsplr.Group.Name, tsplr.Group.Prefix, clan.Prefix, tsplr.Name, tsplr.Group.Suffix, args.Text);
-					TSPlayer.All.SendMessage(message, Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : tsplr.Group.ChatColor.ParseColor());
-					TSPlayer.Server.SendMessage(message, Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : tsplr.Group.ChatColor.ParseColor());
+					args.Message.Prefix(String.Format(Config.PrefixFormat, args.Player.Group.Prefix, clan.Prefix),
+						Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : args.Player.Group.ChatColor.ParseColor());
+				}
 
-					// Handle the event so (hopefully) other plugins don't handle it too.
-					args.Handled = true;
+				if (!String.IsNullOrWhiteSpace(Config.SuffixFormat))
+				{
+					// Remove tshock defaults
+					args.Message.Suffixes.RemoveAll(s => s.Text == args.Player.Group.Suffix);
+
+					args.Message.Suffix(String.Format(Config.SuffixFormat, args.Player.Group.Suffix, clan.Prefix),
+						Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : args.Player.Group.ChatColor.ParseColor());
 				}
 			}
 		}

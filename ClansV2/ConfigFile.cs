@@ -29,6 +29,10 @@ namespace ClansV2
 		/// </summary>
 		public int PrefixLength { get; set; }
 
+		public string PrefixFormat { get; set; }
+
+		public string SuffixFormat { get; set; }
+
 		/// <summary>
 		/// Reads the <see cref="ConfigFile"/> from the given path.
 		/// If the file doesn't exist it creates and writes to a new one.
