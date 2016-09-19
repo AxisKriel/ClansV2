@@ -107,6 +107,9 @@ namespace ClansV2
 					args.Message.Suffix(String.Format(Config.SuffixFormat, args.Player.Group.Suffix, clan.Prefix),
 						Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : args.Player.Group.ChatColor.ParseColor());
 				}
+
+				args.ColorFormatters.Add("Clan",
+					Config.ChatColorsEnabled ? clan.ChatColor.ParseColor() : args.Player.Group.ChatColor.ParseColor());
 			}
 		}
 
